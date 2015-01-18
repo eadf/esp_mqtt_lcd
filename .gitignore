@@ -1,5 +1,6 @@
 .project
 .cproject
+.settings
 firmware
 build
 # Object files
