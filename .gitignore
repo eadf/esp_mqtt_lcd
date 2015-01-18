@@ -1,3 +1,7 @@
+.project
+.cproject
+firmware
+build
 # Object files
 *.o
 *.ko

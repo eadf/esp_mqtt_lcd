@@ -28,7 +28,6 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 #include "ets_sys.h"
-#include "driver/uart.h"
 #include "osapi.h"
 #include "mqtt.h"
 #include "wifi.h"
@@ -36,6 +35,7 @@
 #include "debug.h"
 #include "gpio.h"
 #include "user_interface.h"
+#include "driver/stdout.h"
 #include "mem.h"
 
 MQTT_Client mqttClient;
@@ -93,7 +93,9 @@ void mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const cha
 
 void user_init(void)
 {
-	uart_init(BIT_RATE_115200, BIT_RATE_115200);
+	// Make os_printf working again. Baud:115200,n,8,1
+  	stdoutInit();
+
 	os_delay_us(1000000);
 
 	CFG_Load();
