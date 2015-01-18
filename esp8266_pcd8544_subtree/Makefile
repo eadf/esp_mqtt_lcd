@@ -128,10 +128,10 @@ firmware:
 	$(Q) mkdir -p $@
 
 flash: firmware/0x00000.bin firmware/0x40000.bin
-	#$(PYTHON) /home/user/Develop/workspace-arduino/ProMiniBootloader/upload.py /dev/ttyACM0 9600 bypass reset 
+	#$(PYTHON) ~/Develop/workspace-arduino/ProMiniBootloader/upload.py /dev/ttyACM0 9600 bypass reset 
 	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x3C000 $(BLANKER) 0x40000 firmware/0x40000.bin 
 	#$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x40000 firmware/0x40000.bin 
-	#$(PYTHON) /home/user/Develop/workspace-arduino/ProMiniBootloader/upload.py /dev/ttyACM0 9600 normal
+	#$(PYTHON) ~/Develop/workspace-arduino/ProMiniBootloader/upload.py /dev/ttyACM0 9600 normal
 
 test: flash
 	screen $(ESPPORT) 115200

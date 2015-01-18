@@ -292,7 +292,7 @@ PCD8544_drawLine(void) {
 /**
  */
 void ICACHE_FLASH_ATTR
-PCD8544_init(void)
+PCD8544_init(PCD8544_Settings *settings)
 {
   PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO4_U, FUNC_GPIO4);
   //PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0);
@@ -327,11 +327,11 @@ PCD8544_init(void)
   GPIO_OUTPUT_SET(PIN_SDIN, LOW);
   GPIO_OUTPUT_SET(PIN_SCLK, LOW);
 
-  PCD8544_initLCD();
+  PCD8544_initLCD(settings);
 }
 
 void ICACHE_FLASH_ATTR
-PCD8544_initLCD(void) {
+PCD8544_initLCD(PCD8544_Settings *settings) {
   os_delay_us(10000);
   GPIO_OUTPUT_SET(PIN_RESET, LOW);
   os_delay_us(CLOCK_HIGH_TIME*3);
@@ -339,10 +339,17 @@ PCD8544_initLCD(void) {
   os_delay_us(10000);
 
   PCD8544_lcdWrite8( LCD_CMD, 0x21 );  // LCD Extended Commands.
-  PCD8544_lcdWrite8( LCD_CMD, 0xBf );  // Set LCD Vop (Contrast). //B1
-  PCD8544_lcdWrite8( LCD_CMD, 0x04 );  // Set Temp coefficent. //0x04
-  PCD8544_lcdWrite8( LCD_CMD, 0x14 );  // LCD bias mode 1:48. //0x13
-  PCD8544_lcdWrite8( LCD_CMD, 0x0C );  // LCD in normal mode. 0x0d for inverse
+  if (settings!=NULL) {
+    PCD8544_lcdWrite8( LCD_CMD, settings->lcdVop );  // Set LCD Vop (Contrast). //B1
+    PCD8544_lcdWrite8( LCD_CMD, settings->tempCoeff );  // Set Temp coefficent. //0x04
+    PCD8544_lcdWrite8( LCD_CMD, settings->biasMode  );  // LCD bias mode 1:48. //0x13
+    PCD8544_lcdWrite8( LCD_CMD, settings->inverse?0x0d:0x0C );  // LCD 0x0C in normal mode. 0x0d for inverse
+  } else {
+    PCD8544_lcdWrite8( LCD_CMD, 0xB1 );  // Set LCD Vop (Contrast). //B1
+    PCD8544_lcdWrite8( LCD_CMD, 0x04 );  // Set Temp coefficent. //0x04
+    PCD8544_lcdWrite8( LCD_CMD, 0x14 );  // LCD bias mode 1:48. //0x13
+    PCD8544_lcdWrite8( LCD_CMD, 0x0C );  // LCD in normal mode. 0x0d for inverse
+  }
   PCD8544_lcdWrite8( LCD_CMD, 0x20);
   PCD8544_lcdWrite8( LCD_CMD, 0x0C);
   os_delay_us(100000);

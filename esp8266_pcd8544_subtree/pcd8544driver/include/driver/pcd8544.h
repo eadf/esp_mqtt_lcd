@@ -13,6 +13,13 @@
 #include "ctype.h"
 #include "c_types.h"
 
+typedef struct {
+  uint8_t lcdVop;
+  uint8_t tempCoeff;
+  uint8_t biasMode;
+  bool inverse;
+} PCD8544_Settings;
+
 /**
  * Draws a full screen image.
  * The image must be exactly 528 bytes.
@@ -33,9 +40,9 @@ void PCD8544printBinary(uint32_t data);
 void PCD8544_gotoXY(int x, int y);
 void PCD8544_drawLine(void);
 
-void PCD8544_initLCD(void);
+void PCD8544_initLCD(PCD8544_Settings *settings);
 /**
  */
-void PCD8544_init(void);
+void PCD8544_init(PCD8544_Settings *settings);
 
 #endif /* INCLUDE_DRIVER_PCD8544_H_ */
