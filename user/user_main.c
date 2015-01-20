@@ -56,11 +56,28 @@ static volatile os_timer_t lcd_timer;
 MQTT_Client mqttClient;
 static char clientid[66];
 
+/**
+ * from http://en.wikipedia.org/wiki/Adler-32
+ */
+uint32_t adler32(const void *buf, size_t buflength) {
+  const uint8_t *buffer = (const uint8_t*)buf;
+
+  uint32_t s1 = 1;
+  uint32_t s2 = 0;
+  size_t n = 0;
+  for (; n < buflength; n++) {
+    s1 = (s1 + buffer[n]) % 65521;
+    s2 = (s2 + s1) % 65521;
+  }
+  return (s2 << 16) | s1;
+}
+
 void ICACHE_FLASH_ATTR
 wifiConnectCb(uint8_t status) {
   char hwaddr[6];
   wifi_get_macaddr(0, hwaddr);
-  os_sprintf(clientid, "/" MACSTR , MAC2STR(hwaddr));
+  // Use a adler32 hash method to create a unique topic name that will fit on the screen
+  os_sprintf(clientid, "/%0x", adler32(hwaddr, 6));
 
   if (status == STATION_GOT_IP) {
     MQTT_Connect(&mqttClient);
@@ -96,8 +113,10 @@ mqttPublishedCb(uint32_t *args) {
 }
 
 void ICACHE_FLASH_ATTR
-mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len,
-    const char *data, uint32_t data_len) {
+mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len) {
+
+  static int lastMessageLength = 0;
+
   char *topicBuf = (char*) os_zalloc(topic_len + 1), *dataBuf =
       (char*) os_zalloc(data_len + 1);
 
@@ -110,10 +129,18 @@ mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len,
   dataBuf[data_len] = 0;
 
   INFO("Received topic: %s, data: %s \r\n", topicBuf, dataBuf);
-  PCD8544_gotoXY(2,1);
-  PCD8544_lcdString(dataBuf);
-  INFO("Sent data to LCD: %s \r\n", dataBuf);
+  if (data_len<=lastMessageLength){
+    int i=data_len;
+    // overwrite last message
+    PCD8544_gotoXY(2+i*7,3);
+    for (; i<=lastMessageLength; i++) {
+      PCD8544_lcdCharacter(' ');
+    }
+  }
 
+  PCD8544_gotoXY(2,3);
+  PCD8544_lcdString(dataBuf);
+  lastMessageLength = data_len;
   os_free(topicBuf);
   os_free(dataBuf);
 }
@@ -125,7 +152,7 @@ static void ICACHE_FLASH_ATTR
 lcdInitTask(os_event_t *events) {
   static uint32_t loopIterations = 0;
   loopIterations+=1;
-  if (loopIterations < 4) {
+  if (loopIterations < 2) {
     // I wonder why the calls to initLCD in user_init doesn't 'take'
     PCD8544_initLCD(&pcd8544_settings);
     os_delay_us(50000);
@@ -133,8 +160,12 @@ lcdInitTask(os_event_t *events) {
     os_printf("Initiating display: %d\n\r", loopIterations);
     os_timer_disarm(&lcd_timer);
     os_timer_arm(&lcd_timer, user_procTaskPeriod, 0);
-  } else if (loopIterations == 4){
+  } else if (loopIterations == 2){
     PCD8544_lcdClear();
+    PCD8544_gotoXY(0,0);
+    PCD8544_lcdString("mqtt topic:");
+    PCD8544_gotoXY(0,1);
+    PCD8544_lcdString(clientid);
   }
 }
 
