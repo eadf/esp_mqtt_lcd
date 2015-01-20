@@ -39,7 +39,7 @@ uint8_t PCD8544_pixelAt(uint8_t *image, uint8_t x, uint8_t y);
 
 static const uint8_t ASCII[][5] =
 {
-    {0x00, 0x00, 0x00, 0x00, 0x00} // 20
+    {0x00, 0x00, 0x00, 0x00, 0x00}  // 20
     ,{0x00, 0x00, 0x5f, 0x00, 0x00} // 21 !
     ,{0x00, 0x07, 0x00, 0x07, 0x00} // 22 "
     ,{0x14, 0x7f, 0x14, 0x7f, 0x14} // 23 #
@@ -164,6 +164,9 @@ PCD8544_gotoXY(int x, int y)
 void ICACHE_FLASH_ATTR
 PCD8544_lcdCharacter(char character){
   PCD8544_lcdWrite8(LCD_DATA, 0x00);
+  if (character<0x20 || character>0x7f) {
+    character = '?';
+  }
   int index = 0;
   for (; index < 5; index++) {
     PCD8544_lcdWrite8(LCD_DATA, ASCII[character - 0x20][index]);
