@@ -19,7 +19,7 @@ static uint8_t openhardware_logo[] = {
 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0e,0x1f,0x3f,0x7f,0xff,0xff,0xff,0x7f,0x7f,0x3f,0x3f,0x1f,0x3f,0x3f,0x3f,0x0f,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x03,0x0f,0x3f,0x3f,0x3f,0x1f,0x3f,0x3f,0x7f,0xff,0xff,0xff,0xff,0x3f,0x3f,0x1e,0x0c,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 };
 
-#define user_procTaskPeriod      1000
+#define user_procLcdUpdatePeriod      1000
 static volatile os_timer_t lcd_timer;
 static PCD8544_Settings pcd8544_settings;
 
@@ -32,13 +32,14 @@ loop(os_event_t *events) {
   static bool toggle = true;
   static uint32_t loopIterations = 0;
   loopIterations+=1;
-  if (loopIterations < 4) {
+  if (loopIterations < 2) {
     // I wonder why the calls to initLCD in user_init doesn't 'take'
-    PCD8544_initLCD(&pcd8544_settings);
+    PCD8544_init(&pcd8544_settings); // You don't have to call PCD8544_init here, PCD8544_initLCD is enough.
+                                     // But this way you will be able to see eventual error messages
     os_delay_us(50000);
     PCD8544_lcdImage(openhardware_logo);
     os_printf("Initiating display: %d\n\r", loopIterations);
-  } else if (loopIterations == 4){
+  } else if (loopIterations == 2){
     PCD8544_lcdClear();
   } else {
     os_printf("Updating display\n\r");
@@ -78,7 +79,7 @@ loop(os_event_t *events) {
     toggle = !toggle;
   }
   os_timer_disarm(&lcd_timer);
-  os_timer_arm(&lcd_timer, user_procTaskPeriod, 0);
+  os_timer_arm(&lcd_timer, user_procLcdUpdatePeriod, 0);
 }
 
 //Init function 
@@ -90,15 +91,23 @@ user_init(void)
   pcd8544_settings.biasMode = 0x14;
   pcd8544_settings.inverse = false;
 
+  pcd8544_settings.resetPin = 4;
+  pcd8544_settings.scePin = 5;
+  //pcd8544_settings.resetPin = 0;
+  //pcd8544_settings.scePin = 2;
+
+  pcd8544_settings.dcPin = 12;
+  pcd8544_settings.sdinPin = 13;
+  pcd8544_settings.sclkPin = 14;
+
   //Set station mode
   wifi_set_opmode( NULL_MODE );
 
   // Make os_printf working again. Baud:115200,n,8,1
   stdoutInit();
   PCD8544_init(&pcd8544_settings);
-  PCD8544_initLCD(&pcd8544_settings);
   os_printf("System started\n\r");
   //Start os task
   os_timer_setfn(&lcd_timer, (os_timer_func_t*) loop, NULL);
-  os_timer_arm(&lcd_timer, user_procTaskPeriod, 0);
+  os_timer_arm(&lcd_timer, user_procLcdUpdatePeriod, 0);
 }

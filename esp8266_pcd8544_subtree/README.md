@@ -5,7 +5,7 @@ This is a direct port of code found at [arduino playground.](http://playground.a
 
 The interface requires 5 available GPIO outputs so an ESP-01 will not work. 
 
-This is how the code is hooked up:
+This is how the code is hooked up by default:
 
 PCD8544| ESP8266
 -------|------------------
@@ -15,7 +15,9 @@ DC  Pin 3 | GPIO12
 Din Pin 4 | GPIO13
 Clk Pin 5 | GPIO14
 
- 
 Some ESP-12 have GPIO4 & GPIO5 reversed.
+All of the pins are configurable, you just set the pins you want to use in the setting struct.
 
-I don't know if it is required but i put 1KΩ resistors on each gpio pin, and it does not seem to cause any problems. 
+I don't know if it is required but i put 1KΩ resistors on each GPIO pin, and it does not seem to cause any problems. 
+
+Take a look at [esp_mqtt_lcd](https://github.com/eadf/esp_mqtt_lcd) to see an example on how this project can be used as a library module (git subtree) in your own project.

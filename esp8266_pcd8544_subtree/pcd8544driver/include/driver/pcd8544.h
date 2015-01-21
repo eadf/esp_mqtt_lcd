@@ -18,6 +18,12 @@ typedef struct {
   uint8_t tempCoeff;
   uint8_t biasMode;
   bool inverse;
+
+  uint8_t resetPin;
+  uint8_t scePin;
+  uint8_t dcPin;
+  uint8_t sdinPin;
+  uint8_t sclkPin;
 } PCD8544_Settings;
 
 /**
