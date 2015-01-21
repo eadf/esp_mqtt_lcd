@@ -175,6 +175,12 @@ void user_init(void) {
   pcd8544_settings.biasMode = 0x14;
   pcd8544_settings.inverse = false;
 
+  pcd8544_settings.resetPin = 4;
+  pcd8544_settings.scePin = 5;
+  pcd8544_settings.dcPin = 12;
+  pcd8544_settings.sdinPin = 13;
+  pcd8544_settings.sclkPin = 14;
+
   // Make os_printf working again. Baud:115200,n,8,1
   stdoutInit();
 
