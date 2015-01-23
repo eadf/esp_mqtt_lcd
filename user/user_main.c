@@ -59,7 +59,8 @@ static char clientid[66];
 /**
  * from http://en.wikipedia.org/wiki/Adler-32
  */
-uint32_t adler32(const void *buf, size_t buflength) {
+uint32_t ICACHE_FLASH_ATTR
+adler32(const void *buf, size_t buflength) {
   const uint8_t *buffer = (const uint8_t*)buf;
 
   uint32_t s1 = 1;
@@ -76,7 +77,8 @@ void ICACHE_FLASH_ATTR
 wifiConnectCb(uint8_t status) {
   char hwaddr[6];
   wifi_get_macaddr(0, hwaddr);
-  // Use a adler32 hash method to create a unique topic name that will fit on the screen
+  // Use a adler32 hash method to create a unique:ish
+  // topic name that will fit on the screen
   os_sprintf(clientid, "/%0x", adler32(hwaddr, 6));
 
   if (status == STATION_GOT_IP) {
@@ -90,14 +92,13 @@ mqttConnectedCb(uint32_t *args) {
   INFO("MQTT: Connected! will use %s as MQTT topic \r\n", clientid);
 
   MQTT_Subscribe(client, clientid, 0);
-  //MQTT_Subscribe(client, "/mqtt/topic/0", 0);
-  //MQTT_Subscribe(client, "/mqtt/topic/1", 1);
-  //MQTT_Subscribe(client, "/mqtt/topic/2", 2);
-
-  //MQTT_Publish(client, "/mqtt/topic/0", "hello0", 6, 0, 0);
-  //MQTT_Publish(client, "/mqtt/topic/1", "hello1", 6, 1, 0);
-  //MQTT_Publish(client, "/mqtt/topic/2", "hello2", 6, 2, 0);
-
+  MQTT_Subscribe(client, "/lcd0", 0);
+  MQTT_Subscribe(client, "/lcd1", 0);
+  MQTT_Subscribe(client, "/lcd2", 0);
+  MQTT_Subscribe(client, "/lcd3", 0);
+  MQTT_Subscribe(client, "/lcd4", 0);
+  MQTT_Subscribe(client, "/lcd5", 0);
+  MQTT_Subscribe(client, "/lcd/clearscreen", 0);
 }
 
 void ICACHE_FLASH_ATTR
@@ -129,18 +130,39 @@ mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *da
   dataBuf[data_len] = 0;
 
   INFO("Received topic: %s, data: %s \r\n", topicBuf, dataBuf);
-  if (data_len<=lastMessageLength){
-    int i=data_len;
-    // overwrite last message
-    PCD8544_gotoXY(2+i*7,3);
-    for (; i<=lastMessageLength; i++) {
-      PCD8544_lcdCharacter(' ');
+  if (strcmp(topicBuf, "/lcd0") == 0) {
+    PCD8544_gotoXY(0,0);
+    PCD8544_lcdString(dataBuf);
+  } else if (strcmp(topicBuf, "/lcd1") == 0) {
+    PCD8544_gotoXY(0,1);
+    PCD8544_lcdString(dataBuf);
+  } else if (strcmp(topicBuf, "/lcd2") == 0) {
+    PCD8544_gotoXY(0,2);
+    PCD8544_lcdString(dataBuf);
+  } else if (strcmp(topicBuf, "/lcd3") == 0) {
+    PCD8544_gotoXY(0,3);
+    PCD8544_lcdString(dataBuf);
+  } else if (strcmp(topicBuf, "/lcd4") == 0) {
+    PCD8544_gotoXY(0,4);
+    PCD8544_lcdString(dataBuf);
+  } else if (strcmp(topicBuf, "/lcd5") == 0) {
+    PCD8544_gotoXY(0,5);
+    PCD8544_lcdString(dataBuf);
+  } else if (strcmp(topicBuf, "/lcd/clearscreen") == 0) {
+    PCD8544_lcdClear();
+  } else {
+    if (data_len<=lastMessageLength){
+      int i=data_len;
+      // overwrite last message
+      PCD8544_gotoXY(data_len*7,3);
+      for (; i<=lastMessageLength; i++) {
+        PCD8544_lcdCharacter(' ');
+      }
     }
+    PCD8544_gotoXY(0,3);
+    PCD8544_lcdString(dataBuf);
+    lastMessageLength = data_len<12?data_len+1:data_len;
   }
-
-  PCD8544_gotoXY(2,3);
-  PCD8544_lcdString(dataBuf);
-  lastMessageLength = data_len;
   os_free(topicBuf);
   os_free(dataBuf);
 }
@@ -169,7 +191,8 @@ lcdInitTask(os_event_t *events) {
   }
 }
 
-void user_init(void) {
+void ICACHE_FLASH_ATTR
+user_init(void) {
   pcd8544_settings.lcdVop = 0xB1;
   pcd8544_settings.tempCoeff = 0x04;
   pcd8544_settings.biasMode = 0x14;
