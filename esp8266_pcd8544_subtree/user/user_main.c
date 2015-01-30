@@ -86,6 +86,7 @@ loop(os_event_t *events) {
 void ICACHE_FLASH_ATTR
 user_init(void)
 {
+  os_timer_disarm(&lcd_timer);
   pcd8544_settings.lcdVop = 0xB1;
   pcd8544_settings.tempCoeff = 0x04;
   pcd8544_settings.biasMode = 0x14;
