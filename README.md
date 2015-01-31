@@ -8,6 +8,19 @@ I'm pulling in two git subtree projects : [tuanpmt's exellent mqtt project: esp_
 
 To use the LCD you will need an esp with 5 GPIOs available.
 
+##Usage
+To use this mqtt enabled LCD you can send text messages to these topics:
+* /lcd0
+* /lcd1
+* /lcd2
+* /lcd3
+* /lcd4
+* /lcd5
+
+Representing each row of the display
+
+You can also send messages to a topic that is unique to each esp, look at the debug console for more info.
+
 ###Requried:
 
 esp_iot_sdk_v0.9.4_14_12_19 ( v0.9.5 breaks everything )
