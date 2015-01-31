@@ -1,15 +1,15 @@
 git stash
 
-git checkout esp_mqtt_branch
+git checkout mqtt_branch
 git pull
 git checkout master
-git merge --squash -s subtree --no-commit esp_mqtt_branch
+git merge --squash -s subtree --no-commit mqtt_branch
 git commit -m "esp_mqtt upstream pull"
 
-git checkout esp8266_pcd8544_branch
+git checkout pcd8544_branch
 git pull
 git checkout master
-git merge --squash -s subtree --no-commit esp8266_pcd8544_branch
-git commit -m "esp8266_pcd8544 upstream pull"
+git merge --squash -s subtree --no-commit pcd8544_branch
+git commit -m "pcd8544 upstream pull"
 
 git stash apply
