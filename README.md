@@ -8,3 +8,6 @@ I'm pulling in two git subtree projects : [tuanpmt's exellent mqtt project: esp_
 
 To use the LCD you will need an esp with 5 GPIOs available.
 
+###Requried:
+
+esp_iot_sdk_v0.9.4_14_12_19 ( v0.9.5 breaks everything )
