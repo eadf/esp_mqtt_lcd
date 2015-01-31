@@ -2,13 +2,13 @@
 
 #include "ets_sys.h"
 #include "osapi.h"
+#include "c_types.h"
 #include "gpio.h"
-#include "osapi.h"
 #include "os_type.h"
 #include "user_config.h"
 #include "user_interface.h"
 #include "driver/stdout.h"
-#include "driver/pcd8544.h"
+#include "pcd8544/pcd8544.h"
 
 static uint8_t openhardware_logo[] = {
 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0xe0,0xe0,0xe0,0xc0,0x80,0x80,0x00,0x00,0x00,0x00,0x00,0x80,0xf0,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x80,0x80,0x00,0x00,0x00,0x00,0x00,0x80,0xc0,0xe0,0xe0,0xe0,0xe0,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -20,11 +20,16 @@ static uint8_t openhardware_logo[] = {
 };
 
 #define user_procLcdUpdatePeriod      1000
-static volatile os_timer_t lcd_timer;
+#define user_procTaskPrio        0
+#define user_procTaskQueueLen    1
+
+static volatile os_timer_t loop_timer;
+os_event_t user_procTaskQueue[user_procTaskQueueLen];
 static PCD8544_Settings pcd8544_settings;
 
 void user_init(void);
 static void loop(os_event_t *events);
+static void nop_procTask(os_event_t *events);
 
 //Main code function
 static void ICACHE_FLASH_ATTR
@@ -32,23 +37,18 @@ loop(os_event_t *events) {
   static bool toggle = true;
   static uint32_t loopIterations = 0;
   loopIterations+=1;
-  if (loopIterations < 2) {
-    // I wonder why the calls to initLCD in user_init doesn't 'take'
-    PCD8544_init(&pcd8544_settings); // You don't have to call PCD8544_init here, PCD8544_initLCD is enough.
-                                     // But this way you will be able to see eventual error messages
-    os_delay_us(50000);
+  if (loopIterations < 3) {
     PCD8544_lcdImage(openhardware_logo);
-    os_printf("Initiating display: %d\n\r", loopIterations);
-  } else if (loopIterations == 2){
+  } else if (loopIterations == 3){
     PCD8544_lcdClear();
   } else {
-    os_printf("Updating display\n\r");
+    os_printf("Updating display\n");
     // Draw a Box
     PCD8544_drawLine();
     int a=0;
     PCD8544_gotoXY(17,1);
     // Put text in Box
-    PCD8544_lcdString("ESP8266");
+    PCD8544_lcdPrint("ESP8266");
     PCD8544_gotoXY(24,3);
     if (toggle){
       PCD8544_lcdCharacter('H');
@@ -78,15 +78,35 @@ loop(os_event_t *events) {
     }
     toggle = !toggle;
   }
-  os_timer_disarm(&lcd_timer);
-  os_timer_arm(&lcd_timer, user_procLcdUpdatePeriod, 0);
+}
+
+/**
+ * Setup program. When user_init runs the debug printouts will not always
+ * show on the serial console. So i run the inits in here, 2 seconds later.
+ */
+static void ICACHE_FLASH_ATTR
+setup(void) {
+
+  PCD8544_init(&pcd8544_settings);
+  os_printf("pcd8544 lcd initiated\n");
+
+  // Start loop timer
+  os_timer_disarm(&loop_timer);
+  os_timer_setfn(&loop_timer, (os_timer_func_t *) loop, NULL);
+  os_timer_arm(&loop_timer, user_procLcdUpdatePeriod, 1);
+}
+
+//Do nothing function
+static void ICACHE_FLASH_ATTR
+nop_procTask(os_event_t *events) {
+  os_delay_us(10);
 }
 
 //Init function 
 void ICACHE_FLASH_ATTR
 user_init(void)
 {
-  os_timer_disarm(&lcd_timer);
+  os_timer_disarm(&loop_timer);
   pcd8544_settings.lcdVop = 0xB1;
   pcd8544_settings.tempCoeff = 0x04;
   pcd8544_settings.biasMode = 0x14;
@@ -106,9 +126,12 @@ user_init(void)
 
   // Make os_printf working again. Baud:115200,n,8,1
   stdoutInit();
-  PCD8544_init(&pcd8544_settings);
-  os_printf("System started\n\r");
-  //Start os task
-  os_timer_setfn(&lcd_timer, (os_timer_func_t*) loop, NULL);
-  os_timer_arm(&lcd_timer, user_procLcdUpdatePeriod, 0);
+
+  // Start setup timer
+  os_timer_setfn(&loop_timer, (os_timer_func_t *) setup, NULL);
+  os_timer_arm(&loop_timer, user_procLcdUpdatePeriod*2, 0);
+
+  //Start no-operation os task
+  system_os_task(nop_procTask, user_procTaskPrio, user_procTaskQueue, user_procTaskQueueLen);
+  system_os_post(user_procTaskPrio, 0, 0);
 }

@@ -24,8 +24,8 @@ ESPPORT		?= /dev/ttyUSB0
 TARGET		= app
 
 # which modules (subdirectories) of the project to include in compiling
-MODULES		= driver pcd8544driver user
-EXTRA_INCDIR    = include pcd8544driver/include $(SDK_BASE)/../include
+MODULES		= driver pcd8544 easygpio user
+EXTRA_INCDIR    = include $(SDK_BASE)/../include
 
 # libraries used in this project, mainly provided by the SDK
 LIBS		= c gcc hal phy pp net80211 lwip wpa upgrade main ssl
