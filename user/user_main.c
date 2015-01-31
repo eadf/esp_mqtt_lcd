@@ -37,7 +37,7 @@
 #include "user_interface.h"
 #include "driver/stdout.h"
 #include "mem.h"
-#include "driver/pcd8544.h"
+#include "pcd8544/pcd8544.h"
 
 static uint8_t openhardware_logo[] = {
 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0xe0,0xe0,0xe0,0xc0,0x80,0x80,0x00,0x00,0x00,0x00,0x00,0x80,0xf0,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x80,0x80,0x00,0x00,0x00,0x00,0x00,0x80,0xc0,0xe0,0xe0,0xe0,0xe0,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -132,22 +132,22 @@ mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *da
   INFO("Received topic: %s, data: %s \r\n", topicBuf, dataBuf);
   if (strcmp(topicBuf, "/lcd0") == 0) {
     PCD8544_gotoXY(0,0);
-    PCD8544_lcdString(dataBuf);
+    PCD8544_lcdPrint(dataBuf);
   } else if (strcmp(topicBuf, "/lcd1") == 0) {
     PCD8544_gotoXY(0,1);
-    PCD8544_lcdString(dataBuf);
+    PCD8544_lcdPrint(dataBuf);
   } else if (strcmp(topicBuf, "/lcd2") == 0) {
     PCD8544_gotoXY(0,2);
-    PCD8544_lcdString(dataBuf);
+    PCD8544_lcdPrint(dataBuf);
   } else if (strcmp(topicBuf, "/lcd3") == 0) {
     PCD8544_gotoXY(0,3);
-    PCD8544_lcdString(dataBuf);
+    PCD8544_lcdPrint(dataBuf);
   } else if (strcmp(topicBuf, "/lcd4") == 0) {
     PCD8544_gotoXY(0,4);
-    PCD8544_lcdString(dataBuf);
+    PCD8544_lcdPrint(dataBuf);
   } else if (strcmp(topicBuf, "/lcd5") == 0) {
     PCD8544_gotoXY(0,5);
-    PCD8544_lcdString(dataBuf);
+    PCD8544_lcdPrint(dataBuf);
   } else if (strcmp(topicBuf, "/lcd/clearscreen") == 0) {
     PCD8544_lcdClear();
   } else {
@@ -160,7 +160,7 @@ mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *da
       }
     }
     PCD8544_gotoXY(0,3);
-    PCD8544_lcdString(dataBuf);
+    PCD8544_lcdPrint(dataBuf);
     lastMessageLength = data_len<12?data_len+1:data_len;
   }
   os_free(topicBuf);
@@ -185,9 +185,9 @@ lcdInitTask(os_event_t *events) {
   } else if (loopIterations == 2){
     PCD8544_lcdClear();
     PCD8544_gotoXY(0,0);
-    PCD8544_lcdString("mqtt topic:");
+    PCD8544_lcdPrint("mqtt topic:");
     PCD8544_gotoXY(0,1);
-    PCD8544_lcdString(clientid);
+    PCD8544_lcdPrint(clientid);
   }
 }
 
