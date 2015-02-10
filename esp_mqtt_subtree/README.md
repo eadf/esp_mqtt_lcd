@@ -30,6 +30,8 @@ void wifiConnectCb(uint8_t status)
 {
 	if(status == STATION_GOT_IP){
 		MQTT_Connect(&mqttClient);
+	} else {
+		MQTT_Disconnect(&mqttClient);
 	}
 }
 void mqttConnectedCb(uint32_t *args)
@@ -113,7 +115,7 @@ BOOL MQTT_Publish(MQTT_Client *client, const char* topic, const char* data, int 
 
 ```
 
-**Already support LWT: (Last Will and Testament)***
+**Already support LWT: (Last Will and Testament)**
 
 ```c
 
@@ -122,18 +124,26 @@ MQTT_InitLWT(&mqttClient, "/lwt", "offline", 0, 0);
 
 ```
 
-**Default configuration**
+#Default configuration
 
-See: *include/user_config.h* and *include/config.c*
+See: **include/user_config.h**
 
-If you want to load new default configurations, just change the value of CFG_HOLDER in ***include/user_config.h***
+If you want to load new default configurations, just change the value of CFG_HOLDER in **include/user_config.h**
 
-Now in the Makefile, it will erase section hold the user configuration at 0x3C000
+**Define protocol name in include/user_config.h**
+
+```c
+#define PROTOCOL_NAMEv31	/*MQTT version 3.1 compatible with Mosquitto v0.15*/
+//PROTOCOL_NAMEv311			/*MQTT version 3.11 compatible with https://eclipse.org/paho/clients/testing/*/
+```
+
+In the Makefile, it will erase section hold the user configuration at 0x3C000
 
 ```bash
 flash: firmware/0x00000.bin firmware/0x40000.bin
 	$(PYTHON) $(ESPTOOL) -p $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin 0x3C000 $(BLANKER) 0x40000 firmware/0x40000.bin 
 ```
+The BLANKER is the blank.bin file you find in your SDKs bin folder.
 
 **Create SSL Self sign**
 
