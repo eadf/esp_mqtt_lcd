@@ -52,14 +52,14 @@ easygpio_countBits(uint32_t gpioMask) {
  * Returns the gpio name and func for a specific pin.
  */
 bool ICACHE_FLASH_ATTR
-easygpio_getGpioNameFunc(uint8_t gpio_pin, uint32_t *gpio_name, uint8_t *gpio_func ) {
+easygpio_getGPIONameFunc(uint8_t gpio_pin, uint32_t *gpio_name, uint8_t *gpio_func ) {
 
   if (gpio_pin == 6 || gpio_pin == 7 || gpio_pin == 8 || gpio_pin == 11 || gpio_pin >= 17) {
-    os_printf("easygpio_getGpioNameFunc Error: There is no GPIO%d, check your code\n", gpio_pin);
+    os_printf("easygpio_getGPIONameFunc Error: There is no GPIO%d, check your code\n", gpio_pin);
     return false;
   }
   if (gpio_pin == 16) {
-    os_printf("easygpio_getGpioNameFunc Error: GPIO16 is not implemented\n");
+    os_printf("easygpio_getGPIONameFunc Error: GPIO16 is not implemented\n");
     return false;
   }
   switch ( gpio_pin ) {
@@ -117,16 +117,17 @@ easygpio_getGpioNameFunc(uint8_t gpio_pin, uint32_t *gpio_name, uint8_t *gpio_fu
   return true;
 }
 
-
 /**
  * Sets the pull up and pull down registers for a pin.
+ * 'pullUp' takes precedence over pullDown
  */
 static void ICACHE_FLASH_ATTR
-easygpio_setupPulls(uint32_t gpio_name, bool pullUp, bool pullDown) {
-  if (pullUp){
+easygpio_setupPullsByName(uint32_t gpio_name, EasyGPIO_PullStatus pullStatus) {
+
+  if (EASYGPIO_PULLUP == pullStatus){
     PIN_PULLDWN_DIS(gpio_name);
     PIN_PULLUP_EN(gpio_name);
-  } else if (pullDown){
+  } else if (EASYGPIO_PULLDOWN == pullStatus){
     PIN_PULLUP_DIS(gpio_name);
     PIN_PULLDWN_EN(gpio_name);
   } else {
@@ -136,59 +137,59 @@ easygpio_setupPulls(uint32_t gpio_name, bool pullUp, bool pullDown) {
 }
 
 /**
- * Sets the 'gpio_pin' pin as an input GPIO and sets the pull up and
- * pull down registers for that pin.
+ * Sets the pull up and pull down registers for a pin.
+ * 'pullUp' takes precedence over pullDown
  */
 bool ICACHE_FLASH_ATTR
-easygpio_setupAsInput(uint8_t gpio_pin, bool pullUp, bool pullDown) {
+easygpio_pullMode(uint8_t gpio_pin, EasyGPIO_PullStatus pullStatus) {
   uint32_t gpio_name;
   uint8_t gpio_func;
 
-  if (!easygpio_getGpioNameFunc(gpio_pin, &gpio_name, &gpio_func) ) {
+  if (!easygpio_getGPIONameFunc(gpio_pin, &gpio_name, &gpio_func) ) {
     return false;
   }
 
-  PIN_FUNC_SELECT(gpio_name, gpio_func);
-  easygpio_setupPulls(gpio_name, pullUp, pullDown);
-
-  GPIO_DIS_OUTPUT(gpio_pin);
+  easygpio_setupPullsByName(gpio_name, pullStatus);
   return true;
 }
 
 /**
- * Sets the 'gpio_pin' pin as a GPIO output
+ * Sets the 'gpio_pin' pin as an input GPIO and sets the pull up and
+ * pull down registers for that pin.
  */
 bool ICACHE_FLASH_ATTR
-easygpio_setupAsOutput(uint8_t gpio_pin) {
+easygpio_pinMode(uint8_t gpio_pin, EasyGPIO_PullStatus pullStatus, EasyGPIO_PinMode pinMode) {
   uint32_t gpio_name;
   uint8_t gpio_func;
 
-  if (!easygpio_getGpioNameFunc(gpio_pin, &gpio_name, &gpio_func) ) {
+  if (!easygpio_getGPIONameFunc(gpio_pin, &gpio_name, &gpio_func) ) {
     return false;
   }
-  PIN_FUNC_SELECT(gpio_name, gpio_func);
 
+  PIN_FUNC_SELECT(gpio_name, gpio_func);
+  easygpio_setupPullsByName(gpio_name, pullStatus);
+
+  if (EASYGPIO_OUTPUT != pinMode) {
+    GPIO_DIS_OUTPUT(gpio_pin);
+  }
   return true;
 }
 
+#ifndef XT_RTOS_NAME  // quick and dirty 'fix' for freertos interrupt differences
 
 /**
  * Sets the 'gpio_pin' pin as a GPIO and sets the interrupt to trigger on that pin
  */
 bool ICACHE_FLASH_ATTR
-easygpio_setupInterrupt(uint8_t gpio_pin, bool pullUp, bool pullDown, void (*interruptHandler)(void)) {
+easygpio_attachInterrupt(uint8_t gpio_pin, EasyGPIO_PullStatus pullStatus, void (*interruptHandler)(void)) {
   uint32_t gpio_name;
   uint8_t gpio_func;
 
-  if (gpio_pin == 6 || gpio_pin == 7 || gpio_pin == 8 || gpio_pin == 11 || gpio_pin >= 17) {
-    os_printf("easygpio_setupInterrupt Error: There is no GPIO%d, check your code\n", gpio_pin);
-    return false;
-  }
   if (gpio_pin == 16) {
     os_printf("easygpio_setupInterrupt Error: GPIO16 does not have interrupts\n");
     return false;
   }
-  if (!easygpio_getGpioNameFunc(gpio_pin, &gpio_name, &gpio_func) ) {
+  if (!easygpio_getGPIONameFunc(gpio_pin, &gpio_name, &gpio_func) ) {
     return false;
   }
 
@@ -197,7 +198,7 @@ easygpio_setupInterrupt(uint8_t gpio_pin, bool pullUp, bool pullDown, void (*int
 
   PIN_FUNC_SELECT(gpio_name, gpio_func);
 
-  easygpio_setupPulls(gpio_name, pullUp, pullDown);
+  easygpio_setupPullsByName(gpio_name, pullStatus);
 
   // disable output
   GPIO_DIS_OUTPUT(gpio_pin);
@@ -212,3 +213,23 @@ easygpio_setupInterrupt(uint8_t gpio_pin, bool pullUp, bool pullDown, void (*int
 
   return true;
 }
+
+/**
+ * Detach the interrupt handler from the 'gpio_pin' pin.
+ */
+bool ICACHE_FLASH_ATTR
+easygpio_detachInterrupt(uint8_t gpio_pin) {
+
+  if (gpio_pin == 16) {
+    os_printf("easygpio_setupInterrupt Error: GPIO16 does not have interrupts\n");
+    return false;
+  }
+
+  // Don't know how to detach interrupt, yet.
+  // Quick and dirty fix - just disable the interrupt
+  gpio_pin_intr_state_set(GPIO_ID_PIN(gpio_pin), GPIO_PIN_INTR_DISABLE);
+  return true;
+}
+
+#endif
+

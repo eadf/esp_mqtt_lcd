@@ -22,6 +22,8 @@ I don't know if it is required but i put 1KΩ resistors on each GPIO pin, and it
 
 Take a look at [esp_mqtt_lcd](https://github.com/eadf/esp_mqtt_lcd) to see an example on how this project can be used as a library module (git subtree) in your own project.
 
-###Requried:
+###Required:
 
-esp_iot_sdk_v0.9.4_14_12_19 ( v0.9.5 breaks everything ) 
+esp_iot_sdk_v0.9.4_14_12_19
+
+I've successfully tested this with sdk v0.9.5 (linux makefile).

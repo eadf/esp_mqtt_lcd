@@ -38,7 +38,6 @@ void PCD8544_lcdWrite8(bool dc, uint8_t data);
 void PCD8544_shiftOut8(bool msbFirst, uint8_t data);
 void PCD8544_printBinary(uint32_t data);
 uint8_t PCD8544_pixelAt(uint8_t *image, uint8_t x, uint8_t y);
-bool PCD8544_enableGPIOs(uint32_t gpioMask);
 
 static const uint8_t ASCII[][5] =
 {
@@ -186,6 +185,7 @@ PCD8544_lcdPrint(char *characters) {
 void ICACHE_FLASH_ATTR
 PCD8544_lcdClear(void) {
   int index = 0;
+  PCD8544_gotoXY(0,0);
   for (; index < LCD_X * LCD_Y / 8; index++){
     PCD8544_lcdWrite8(LCD_DATA, 0x00);
   }
@@ -205,6 +205,7 @@ PCD8544_pixelAt(uint8_t *image, uint8_t x, uint8_t y) {
 void ICACHE_FLASH_ATTR
 PCD8544_lcdImage(uint8_t *image) {
   int index = 0;
+  PCD8544_gotoXY(0,0);
   for (; index < LCD_X * LCD_Y / 8; index++) {
     PCD8544_lcdWrite8(LCD_DATA, image[index]);
   }
@@ -293,11 +294,11 @@ PCD8544_init(PCD8544_Settings *settings) {
   }
 
   // Define each used pin as a GPIO output
-  if (!(easygpio_setupAsOutput(pinReset) &&
-        easygpio_setupAsOutput(pinSce) &&
-        easygpio_setupAsOutput(pinDc) &&
-        easygpio_setupAsOutput(pinSdin) &&
-        easygpio_setupAsOutput(pinSclk))) {
+  if (!(easygpio_pinMode(pinReset, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
+        easygpio_pinMode(pinSce, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
+        easygpio_pinMode(pinDc, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
+        easygpio_pinMode(pinSdin, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
+        easygpio_pinMode(pinSclk, EASYGPIO_NOPULL, EASYGPIO_OUTPUT))) {
     return;
   }
 

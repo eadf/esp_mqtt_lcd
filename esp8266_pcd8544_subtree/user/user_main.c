@@ -86,27 +86,6 @@ loop(os_event_t *events) {
  */
 static void ICACHE_FLASH_ATTR
 setup(void) {
-
-  PCD8544_init(&pcd8544_settings);
-  os_printf("pcd8544 lcd initiated\n");
-
-  // Start loop timer
-  os_timer_disarm(&loop_timer);
-  os_timer_setfn(&loop_timer, (os_timer_func_t *) loop, NULL);
-  os_timer_arm(&loop_timer, user_procLcdUpdatePeriod, 1);
-}
-
-//Do nothing function
-static void ICACHE_FLASH_ATTR
-nop_procTask(os_event_t *events) {
-  os_delay_us(10);
-}
-
-//Init function 
-void ICACHE_FLASH_ATTR
-user_init(void)
-{
-  os_timer_disarm(&loop_timer);
   pcd8544_settings.lcdVop = 0xB1;
   pcd8544_settings.tempCoeff = 0x04;
   pcd8544_settings.biasMode = 0x14;
@@ -121,15 +100,40 @@ user_init(void)
   pcd8544_settings.sdinPin = 13;
   pcd8544_settings.sclkPin = 14;
 
-  //Set station mode
-  wifi_set_opmode( NULL_MODE );
+  PCD8544_init(&pcd8544_settings);
+  os_printf("pcd8544 lcd initiated\n");
 
-  // Make os_printf working again. Baud:115200,n,8,1
+  // Start loop timer
+  os_timer_disarm(&loop_timer);
+  os_timer_setfn(&loop_timer, (os_timer_func_t *) loop, NULL);
+  os_timer_arm(&loop_timer, user_procLcdUpdatePeriod, true);
+}
+
+//Do nothing function
+static void ICACHE_FLASH_ATTR
+nop_procTask(os_event_t *events) {
+  os_delay_us(10);
+}
+
+//Init function 
+void ICACHE_FLASH_ATTR
+user_init(void)
+{
+  // Make uart0 work with just the TX pin. Baud:115200,n,8,1
+  // The RX pin is now free for GPIO use.
   stdoutInit();
+
+  //Set station mode
+  //wifi_set_opmode(NULL_MODE); // NULL_MODE will crash the system under 0.9.5. It works with 0.9.4.
+
+  //if you flash your device with code that sets NULL_MODE it will remain in the system
+  //until you flash the device with code that actively sets opmode to something useful.
+
+  os_timer_disarm(&loop_timer);
 
   // Start setup timer
   os_timer_setfn(&loop_timer, (os_timer_func_t *) setup, NULL);
-  os_timer_arm(&loop_timer, user_procLcdUpdatePeriod*2, 0);
+  os_timer_arm(&loop_timer, user_procLcdUpdatePeriod*2, false);
 
   //Start no-operation os task
   system_os_task(nop_procTask, user_procTaskPrio, user_procTaskQueue, user_procTaskQueueLen);
