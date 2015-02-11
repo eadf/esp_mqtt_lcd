@@ -193,7 +193,7 @@ PCD8544_lcdClear(void) {
 
 /**
  * This does *not* work yet
- */
+ * /
 uint8_t ICACHE_FLASH_ATTR
 #include "gpio.h"
 PCD8544_pixelAt(uint8_t *image, uint8_t x, uint8_t y) {
@@ -201,6 +201,7 @@ PCD8544_pixelAt(uint8_t *image, uint8_t x, uint8_t y) {
   uint8_t aBit = 7-((11*y+x) & 0x7);
   return (image[aByte] >> aBit) &1;
 }
+*/
 
 void ICACHE_FLASH_ATTR
 PCD8544_lcdImage(uint8_t *image) {
