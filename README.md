@@ -35,7 +35,7 @@ export ESPPORT=/dev/ttyO0
 ```
 (or setup your IDE to do the same)
 
-In the root of this project create a soft link Makefile.[mac,linux] -> Makefile
+In the root of this project create a soft link Makefile -> Makefile.[mac,linux]
 
 To make a clean build, flash and connect to the esp console you just do this in a shell:
 ```
