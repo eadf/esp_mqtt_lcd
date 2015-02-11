@@ -20,7 +20,7 @@ ESPPORT		?= /dev/ttyUSB0
 TARGET		= app
 
 # which modules (subdirectories) of the project to include in compiling
-MODULES        = driver esp8266_pcd8544_subtree/driver/easygpio esp8266_pcd8544_subtree/driver/pcd8544 esp_mqtt_subtree/mqtt user
+MODULES        = driver pcd8544/driver/easygpio pcd8544/driver/pcd8544 mqtt/mqtt user
 EXTRA_INCDIR    = include $(SDK_BASE)/../include
 
 # libraries used in this project, mainly provided by the SDK
