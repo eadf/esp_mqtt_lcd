@@ -1,3 +1,5 @@
+# This is just something i need to copy&paste from when i'm pulling in modifications from the sub-projects. 
+
 git stash
 
 git checkout mqtt_branch
