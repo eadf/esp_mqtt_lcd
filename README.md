@@ -35,12 +35,6 @@ export ESPPORT=/dev/ttyO0
 ```
 (or setup your IDE to do the same)
 
-In the root of this project create a soft link Makefile -> Makefile.[mac,linux]
-```
-ln -s Makefile.linux Makefile
-```
-You don't *have* to do this, it just makes it more convenient to run ```make``` (instead of ```make -f Makefile.linux```)
-
 To make a clean build, flash and connect to the esp console you just do this in a shell:
 ```
 source setenv.sh # This is only needed once per session
