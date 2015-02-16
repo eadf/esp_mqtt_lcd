@@ -89,80 +89,74 @@ wifiConnectCb(uint8_t status) {
 void ICACHE_FLASH_ATTR
 mqttConnectedCb(uint32_t *args) {
   MQTT_Client* client = (MQTT_Client*) args;
-  INFO("MQTT: Connected! will use %s as MQTT topic \r\n", clientid);
-
+  INFO("MQTT: Connected! will use %s as MQTT topic \n", clientid);
+  char *buf = "                            ";
+  int i = 0;
   MQTT_Subscribe(client, clientid, 0);
-  MQTT_Subscribe(client, "/lcd0", 0);
-  MQTT_Subscribe(client, "/lcd1", 0);
-  MQTT_Subscribe(client, "/lcd2", 0);
-  MQTT_Subscribe(client, "/lcd3", 0);
-  MQTT_Subscribe(client, "/lcd4", 0);
-  MQTT_Subscribe(client, "/lcd5", 0);
+  for (i=0; i<6; i++){
+    os_sprintf(buf, "/lcd%1d", i);
+    MQTT_Subscribe(client, buf, 0);
+    os_sprintf(buf, "%s/lcd%1d", clientid, i);
+    MQTT_Subscribe(client, buf, 0);
+  }
+
   MQTT_Subscribe(client, "/lcd/clearscreen", 0);
+  os_sprintf(buf, "%s/clearscreen", clientid);
+  MQTT_Subscribe(client, buf, 0);
 }
 
 void ICACHE_FLASH_ATTR
 mqttDisconnectedCb(uint32_t *args) {
   MQTT_Client* client = (MQTT_Client*) args;
-  INFO("MQTT: Disconnected\r\n");
+  INFO("MQTT: Disconnected\n");
 }
 
 void ICACHE_FLASH_ATTR
 mqttPublishedCb(uint32_t *args) {
   MQTT_Client* client = (MQTT_Client*) args;
-  INFO("MQTT: Published\r\n");
+  INFO("MQTT: Published\n");
 }
 
 void ICACHE_FLASH_ATTR
 mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len) {
 
-  static int lastMessageLength = 0;
-
-  char *topicBuf = (char*) os_zalloc(topic_len + 1), *dataBuf =
-      (char*) os_zalloc(data_len + 1);
+  char *topicBuf = (char*) os_zalloc(topic_len + 1), *dataBuf = (char*) os_zalloc(data_len + 1);
 
   MQTT_Client* client = (MQTT_Client*) args;
-
   os_memcpy(topicBuf, topic, topic_len);
   topicBuf[topic_len] = 0;
+  char *sp = topicBuf; // string pointer accessing internals of topicBuf
 
   os_memcpy(dataBuf, data, data_len);
   dataBuf[data_len] = 0;
 
-  INFO("Received topic: %s, data: %s \r\n", topicBuf, dataBuf);
-  if (strcmp(topicBuf, "/lcd0") == 0) {
+  INFO("Received topic: %s, data: %s \n", topicBuf, dataBuf);
+  if (strncmp(sp, clientid, strlen(clientid)) == 0) {
+    sp += strlen(clientid);
+  }
+
+  if (strcmp(sp, "/lcd0") == 0) {
     PCD8544_gotoXY(0,0);
     PCD8544_lcdPrint(dataBuf);
-  } else if (strcmp(topicBuf, "/lcd1") == 0) {
+  } else if (strcmp(sp, "/lcd1") == 0) {
     PCD8544_gotoXY(0,1);
     PCD8544_lcdPrint(dataBuf);
-  } else if (strcmp(topicBuf, "/lcd2") == 0) {
+  } else if (strcmp(sp, "/lcd2") == 0) {
     PCD8544_gotoXY(0,2);
     PCD8544_lcdPrint(dataBuf);
-  } else if (strcmp(topicBuf, "/lcd3") == 0) {
+  } else if (strcmp(sp, "/lcd3") == 0) {
     PCD8544_gotoXY(0,3);
     PCD8544_lcdPrint(dataBuf);
-  } else if (strcmp(topicBuf, "/lcd4") == 0) {
+  } else if (strcmp(sp, "/lcd4") == 0) {
     PCD8544_gotoXY(0,4);
     PCD8544_lcdPrint(dataBuf);
-  } else if (strcmp(topicBuf, "/lcd5") == 0) {
+  } else if (strcmp(sp, "/lcd5") == 0) {
     PCD8544_gotoXY(0,5);
     PCD8544_lcdPrint(dataBuf);
-  } else if (strcmp(topicBuf, "/lcd/clearscreen") == 0) {
+  } else if ((strcmp(topicBuf, "/lcd/clearscreen") == 0) || (strcmp(sp, "/clearscreen") == 0)) {
     PCD8544_lcdClear();
-  } else {
-    if (data_len<=lastMessageLength){
-      int i=data_len;
-      // overwrite last message
-      PCD8544_gotoXY(data_len*7,3);
-      for (; i<=lastMessageLength; i++) {
-        PCD8544_lcdCharacter(' ');
-      }
-    }
-    PCD8544_gotoXY(0,3);
-    PCD8544_lcdPrint(dataBuf);
-    lastMessageLength = data_len<12?data_len+1:data_len;
   }
+
   os_free(topicBuf);
   os_free(dataBuf);
 }
@@ -179,7 +173,7 @@ lcdInitTask(os_event_t *events) {
     PCD8544_initLCD(&pcd8544_settings);
     os_delay_us(50000);
     PCD8544_lcdImage(openhardware_logo);
-    os_printf("Initiating display: %d\n\r", loopIterations);
+    os_printf("Initiating display: %d\n", loopIterations);
     os_timer_disarm(&lcd_timer);
     os_timer_arm(&lcd_timer, user_procTaskPeriod, 0);
   } else if (loopIterations == 2){
@@ -204,7 +198,8 @@ user_init(void) {
   pcd8544_settings.sdinPin = 13;
   pcd8544_settings.sclkPin = 14;
 
-  // Make os_printf working again. Baud:115200,n,8,1
+  // Make uart0 work with just the TX pin. Baud:115200,n,8,1
+  // The RX pin is now free for GPIO use.
   stdout_init();
 
   os_delay_us(1000000); // wait a second
@@ -214,10 +209,8 @@ user_init(void) {
   CFG_Load();
 
   MQTT_InitConnection(&mqttClient, sysCfg.mqtt_host, sysCfg.mqtt_port, sysCfg.security);
-  //MQTT_InitConnection(&mqttClient, "192.168.11.122", 1880, 0);
 
   MQTT_InitClient(&mqttClient, sysCfg.device_id, sysCfg.mqtt_user, sysCfg.mqtt_pass, sysCfg.mqtt_keepalive, 1);
-  //MQTT_InitClient(&mqttClient, "client_id", "user", "pass", 120, 1);
 
   MQTT_InitLWT(&mqttClient, "/lwt", "offline", 0, 0);
   MQTT_OnConnected(&mqttClient, mqttConnectedCb);
@@ -230,5 +223,5 @@ user_init(void) {
   os_timer_setfn(&lcd_timer, (os_timer_func_t*) lcdInitTask, NULL);
   os_timer_arm(&lcd_timer, user_procTaskPeriod, 0);
 
-  INFO("\r\nSystem started ...\r\n");
+  INFO("\nSystem started ...\n");
 }
