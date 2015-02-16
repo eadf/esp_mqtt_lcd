@@ -31,7 +31,7 @@ Then you could create a small setenv.sh file, containing the location of your ne
 ```
 export SDK_BASE=/opt/local/esp-open-sdk/sdk
 export PATH=${SDK_BASE}/../xtensa-lx106-elf/bin:${PATH}
-export ESPPORT=/dev/ttyO0  
+export ESPPORT=/dev/ttyUSB0 
 ```
 (or setup your IDE to do the same)
 
