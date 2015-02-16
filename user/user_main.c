@@ -35,7 +35,7 @@
 #include "debug.h"
 #include "gpio.h"
 #include "user_interface.h"
-#include "driver/stdout.h"
+#include "stdout/stdout.h"
 #include "mem.h"
 #include "pcd8544/pcd8544.h"
 
@@ -205,7 +205,7 @@ user_init(void) {
   pcd8544_settings.sclkPin = 14;
 
   // Make os_printf working again. Baud:115200,n,8,1
-  stdoutInit();
+  stdout_init();
 
   os_delay_us(1000000); // wait a second
   PCD8544_init(&pcd8544_settings);
