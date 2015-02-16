@@ -1,9 +1,0 @@
-# Use Makefile as a soft link to your platform makefile (Makefile.linux/Makefile.mac)
-Makefile
-
-.project
-.cproject
-.settings
-build
-firmware
-
