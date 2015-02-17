@@ -92,7 +92,7 @@ mqttConnectedCb(uint32_t *args) {
   INFO("MQTT: Connected! will use %s as MQTT topic \n", clientid);
   char *buf = "                            ";
   int i = 0;
-  MQTT_Subscribe(client, clientid, 0);
+
   for (i=0; i<6; i++){
     os_sprintf(buf, "/lcd%1d", i);
     MQTT_Subscribe(client, buf, 0);
