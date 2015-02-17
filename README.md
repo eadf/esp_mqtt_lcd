@@ -16,10 +16,11 @@ To use this mqtt enabled LCD you can send text messages to these topics:
 * /lcd3
 * /lcd4
 * /lcd5
+* /lcd/clearscreen
 
-Representing each row of the display
+Representing each row of the display.
 
-You can also send messages to a topic that is unique to each esp, look at the debug console for more info.
+You can also send messages to a topic that is unique to each *esp*, look at the debug console for more info.
 
 The makefile is copied from [esp_mqtt.](https://github.com/tuanpmt/esp_mqtt)
 
