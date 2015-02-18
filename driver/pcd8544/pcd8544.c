@@ -284,6 +284,10 @@ PCD8544_drawLine(void) {
   }
 }
 
+/**
+ * Sets the contrast [0x00 - 0x7f].
+ * Useful, visible range is about 40-60.
+ */
 void ICACHE_FLASH_ATTR
 PCD8544_setContrast(uint8_t contrast) {
   contrast &= 0x7f;
