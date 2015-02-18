@@ -54,6 +54,27 @@ GPIO_OUTPUT_SET(gpio_no, bit_value) // GPIO_OUTPUT_SET(0,1) sets gpio0 to high
 GPIO_DIS_OUTPUT(gpio_no) // GPIO_DIS_OUTPUT(2) turns off output on gpio2
 GPIO_INPUT_GET(gpio_no) // GPIO_INPUT_GET(12) returns the input value of gpio12
 ```
+
+###Available pins
+
+Pin number | Note
+-----------|------
+GPIO0 	   | this pin selects bootmode
+GPIO1      | normally UART0 TX
+GPIO2 	   | this pin selects bootmode
+GPIO3      | normally UART0 RX
+GPIO4      | sometimes mislabeled as GPIO5 (esp-12)
+GPIO5      | sometimes mislabeled as GPIO4 (esp-12)
+GPIO9      |  not available on esp-07 & esp-12
+GPIO10      | not available on esp-07 & esp-12
+GPIO11      | not available on esp-07 & esp-12
+GPIO12      | 
+GPIO13      |
+GPIO14      |
+GPIO15 	   | this pin selects bootmode
+GPIO16      | not implemented yet (no interrupt on this pin)
+
+
 ##Required:
 
 esp_iot_sdk_v0.9.4_14_12_19
