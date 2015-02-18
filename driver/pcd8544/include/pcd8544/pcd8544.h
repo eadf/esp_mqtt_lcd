@@ -1,10 +1,10 @@
 /*
- * gpio_intr.h
+ * pcd8544.h
  *
- *  GPIO interrupt handler
+ *  PCD8544 bit-banging driver ported from http://playground.arduino.cc/Code/PCD8544
  *
  *  Created on: Jan 7, 2015
- *      Author: EaD
+ *      Author: Eadf
  */
 
 #ifndef INCLUDE_DRIVER_PCD8544_H_

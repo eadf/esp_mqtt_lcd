@@ -1,5 +1,10 @@
 /*
+ * pcd8544.c
  *
+ *  PCD8544 bit-banging driver ported from http://playground.arduino.cc/Code/PCD8544
+ *
+ *  Created on: Jan 7, 2015
+ *      Author: Eadf
  */
 
 #include "pcd8544/pcd8544.h"
