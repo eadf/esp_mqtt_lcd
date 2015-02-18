@@ -38,6 +38,10 @@ void PCD8544_lcdPrint(char *characters);
 void PCD8544_printBinary(uint32_t data);
 void PCD8544_gotoXY(int x, int y);
 void PCD8544_drawLine(void);
+/**
+ * Sets the contrast [0x00 - 0x7f].
+ * Useful, visible range is about 40-60.
+ */
 void PCD8544_setContrast(uint8_t val);
 
 void PCD8544_initLCD(PCD8544_Settings *settings);
