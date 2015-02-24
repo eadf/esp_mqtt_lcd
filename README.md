@@ -38,6 +38,8 @@ export ESPPORT=/dev/ttyO0
 ```
 (or setup your IDE to do the same)
 
+You will have to edit the ```include/user_config.h``` file to suit your WiFi and mqtt settings. Alternatively you can copy ```include/user_config.h``` into ```localinclude/user_config.h``` and git will not bother you about modified files.
+
 To make a clean build, flash and connect to the esp console you just do this in a shell:
 ```
 source setenv.sh # This is only needed once per session
