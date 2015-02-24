@@ -60,9 +60,9 @@ GPIO_INPUT_GET(gpio_no) // GPIO_INPUT_GET(12) returns the input value of gpio12
 Pin number | Note
 -----------|------
 GPIO0 	   | this pin selects bootmode
-GPIO1      | normally UART0 TX
+GPIO1      | normally UART0 TX 
 GPIO2 	   | this pin selects bootmode
-GPIO3      | normally UART0 RX
+GPIO3      | normally UART0 RX (you can use [stdout](https://github.com/eadf/esp8266_stdout) to use it as GPIO)
 GPIO4      | sometimes mislabeled as GPIO5 (esp-12)
 GPIO5      | sometimes mislabeled as GPIO4 (esp-12)
 GPIO9      |  not available on esp-07 & esp-12
@@ -77,6 +77,6 @@ GPIO16      | not implemented yet (no interrupt on this pin)
 
 ##Required:
 
-esp_iot_sdk_v0.9.4_14_12_19
+esp_iot_sdk_v0.9.4_14_12_19 or higher.
 
 I've successfully tested this with sdk v0.9.5 (linux makefile).
