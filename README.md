@@ -27,6 +27,20 @@ The LCD is also listening to these topics:
 
 You can also send messages to topics that are unique to each *esp*, look at the debug console for more info.
 
+### Pin configuraton
+This is how the code is hooked up by default:
+
+PCD8544| ESP8266
+-------|------------------
+RST Pin 1 | GPIO4
+CE  Pin 2 | GPIO5
+DC  Pin 3 | GPIO12
+Din Pin 4 | GPIO13
+Clk Pin 5 | GPIO14
+
+Some ESP-12 have GPIO4 & GPIO5 reversed.
+All of the pins are configurable, you just set the pins you want to use in the setting struct.
+
 The makefile is copied from [esp_mqtt.](https://github.com/tuanpmt/esp_mqtt)
 
 ###Building and installing:
