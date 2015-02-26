@@ -2,9 +2,11 @@
 
 ESP8266 displaying mqtt messages on a Nokia 5110 LCD
 
-This is a git subtree experiment at well as a hardware experiment.
-
-I'm pulling in two git subtree projects : [tuanpmt's exellent mqtt project: esp_mqtt](https://github.com/tuanpmt/esp_mqtt) and my lcd project [  esp8266_pcd8544](https://github.com/eadf/esp8266_pcd8544).
+I'm pulling in several git subtree modules :
+* [tuanpmt's exellent mqtt project: esp_mqtt](https://github.com/tuanpmt/esp_mqtt) 
+* [esp8266_pcd8544](https://github.com/eadf/esp8266_pcd8544) the lcd driver
+* [esp8266_easygpio](https://github.com/eadf/esp8266_easygpio) makes it easy to change GPIO pins
+* [esp8266_stdout](https://github.com/eadf/esp8266_stdout) alternative UART implementation (not really required) 
 
 To use the LCD you will need an esp with 5 GPIOs available.
 
