@@ -85,6 +85,9 @@ mqttConnectedCb(uint32_t *args) {
   MQTT_Subscribe(client, "/lcd/clearscreen", 0);
   os_sprintf(buf, "%s/clearscreen", clientid);
   MQTT_Subscribe(client, buf, 0);
+  MQTT_Subscribe(client, "/lcd/contrast", 0);
+  os_sprintf(buf, "%s/contrast", clientid);
+  MQTT_Subscribe(client, buf, 0);
 }
 
 void ICACHE_FLASH_ATTR
@@ -123,6 +126,13 @@ mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *da
   } else if (strcmp(sp, "/lcd5") == 0) {
     PCD8544_gotoXY(0,5);
     PCD8544_lcdPrint(dataBuf);
+  } else if (strcmp(sp, "/contrast") == 0) {
+    uint8_t contrast = atoi(dataBuf);
+    if (contrast>0){
+      // atoi("random non-numeric string") will return 0
+      INFO("Setting contrast to %d\n", contrast);
+      PCD8544_setContrast(contrast);
+    }
   } else if ((strcmp(topicBuf, "/lcd/clearscreen") == 0) || (strcmp(sp, "/clearscreen") == 0)) {
     PCD8544_lcdClear();
   }
@@ -162,6 +172,7 @@ user_init(void) {
   pcd8544_settings.biasMode = 0x14;
   pcd8544_settings.inverse = false;
 
+  // you can change these values to any pin you like and have access to
   pcd8544_settings.resetPin = 4;
   pcd8544_settings.scePin = 5;
   pcd8544_settings.dcPin = 12;
