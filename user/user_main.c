@@ -126,7 +126,7 @@ mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *da
   } else if (strcmp(sp, "/lcd5") == 0) {
     PCD8544_gotoXY(0,5);
     PCD8544_lcdPrint(dataBuf);
-  } else if (strcmp(sp, "/contrast") == 0) {
+  } else if ( (strcmp(topicBuf, "/lcd/contrast") == 0) || (strcmp(sp, "/contrast") == 0)) {
     uint8_t contrast = atoi(dataBuf);
     if (contrast>0){
       // atoi("random non-numeric string") will return 0
