@@ -16,9 +16,12 @@ To use this mqtt enabled LCD you can send text messages to these topics:
 * /lcd3
 * /lcd4
 * /lcd5
-* /lcd/clearscreen
 
 Representing each row of the display.
+
+The LCD is also listening to these topics:
+* /lcd/clearscreen
+* /lcd/contrast
 
 You can also send messages to topics that are unique to each *esp*, look at the debug console for more info.
 
