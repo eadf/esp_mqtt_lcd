@@ -31,13 +31,13 @@ bool easygpio_getGPIONameFunc(uint8_t gpio_pin, uint32_t *gpio_name, uint8_t *gp
 
 You can even setup an interrupt handler:
 ```
-bool easygpio_attachInterrupt(uint8_t gpio_pin, EasyGPIO_PullStatus pullStatus, void (*interruptHandler)(void))
+bool easygpio_attachInterrupt(uint8_t gpio_pin, EasyGPIO_PullStatus pullStatus, void (*interruptHandler)(uint8_t key))
 ```
 
 But you will still have to do this little dance in your interrupt handler code:
 ```
 
-static void interrupt_handler(void) {
+static void interrupt_handler(uint8_t key) {
   uint32_t gpio_status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);
   //clear interrupt status
   GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, gpio_status & BIT(my_interrupt_gpio_pin));
@@ -46,7 +46,7 @@ static void interrupt_handler(void) {
 
 See an example [here](https://github.com/eadf/esp8266_digoleserial)
 
-Use the methods and macros defined in gpio.h (from the sdk) to access the gpio values.
+You can use the methods and macros defined in gpio.h (from the sdk) to access the gpio values.
 ```
 #include "gpio.h"
 ...
@@ -59,19 +59,16 @@ GPIO_INPUT_GET(gpio_no) // GPIO_INPUT_GET(12) returns the input value of gpio12
 
 Pin number | Note
 -----------|------
-GPIO0 	   | this pin selects bootmode
+GPIO0 	   | this pin selects bootmode [(pull up for *normal* boot)](https://github.com/esp8266/esp8266-wiki/wiki/Boot-Process#esp-boot-modes)
 GPIO1      | normally UART0 TX 
-GPIO2 	   | this pin selects bootmode
+GPIO2 	   | this pin selects bootmode [(pull up for *normal* boot)](https://github.com/esp8266/esp8266-wiki/wiki/Boot-Process#esp-boot-modes)
 GPIO3      | normally UART0 RX (you can use [stdout](https://github.com/eadf/esp8266_stdout) to use it as GPIO)
 GPIO4      | sometimes mislabeled as GPIO5 (esp-12)
 GPIO5      | sometimes mislabeled as GPIO4 (esp-12)
-GPIO9      |  not available on esp-07 & esp-12
-GPIO10      | not available on esp-07 & esp-12
-GPIO11      | not available on esp-07 & esp-12
-GPIO12      | 
-GPIO13      |
-GPIO14      |
-GPIO15 	   | this pin selects bootmode
+GPIO12     | 
+GPIO13     |
+GPIO14     |
+GPIO15 	   | this pin selects bootmode [(pull down for *normal* boot)](https://github.com/esp8266/esp8266-wiki/wiki/Boot-Process#esp-boot-modes)
 GPIO16      | not implemented yet (no interrupt on this pin)
 
 
@@ -79,4 +76,4 @@ GPIO16      | not implemented yet (no interrupt on this pin)
 
 esp_iot_sdk_v0.9.4_14_12_19 or higher.
 
-I've successfully tested this with sdk v0.9.5 (linux makefile).
+I've successfully tested this with sdk v0.9.5 (linux & mac).
