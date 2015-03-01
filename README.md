@@ -8,7 +8,7 @@ I'm pulling in several git subtree modules :
 * [esp8266_easygpio](https://github.com/eadf/esp8266_easygpio) makes it easy to change GPIO pins
 * [esp8266_stdout](https://github.com/eadf/esp8266_stdout) alternative UART implementation (not really required) 
 
-To use the LCD you will need an esp with 5 GPIOs available.
+Good news, the interface no longer requires 5 available GPIO outputs so an ESP-01 will indeed work. (But only if the RX pin of the esp is used.)
 
 ##Usage
 To use this mqtt enabled LCD you can send text messages to these topics:
@@ -28,6 +28,7 @@ The LCD is also listening to these topics:
 You can also send messages to topics that are unique to each *esp*, look at the debug console for more info.
 
 ### Pin configuraton
+
 This is how the code is hooked up by default:
 
 PCD8544| ESP8266
@@ -39,6 +40,11 @@ Din Pin 4 | GPIO13
 Clk Pin 5 | GPIO14
 
 Some ESP-12 have GPIO4 & GPIO5 reversed.
+
+The RST pin is optional, set it to a negative value and tie PCD8544 reset to ESP reset via a resistor.
+
+The CE pin is optional, set it to a negative value and tie PCD8544 CE pin to GND via a resistor.
+
 All of the pins are configurable, you just set the pins you want to use in the setting struct.
 
 The makefile is copied from [esp_mqtt.](https://github.com/tuanpmt/esp_mqtt)
