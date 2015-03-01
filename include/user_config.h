@@ -39,4 +39,5 @@
 #define PCD8544_DC_PIN   12
 #define PCD8544_SDIN_PIN 13
 #define PCD8544_SCLK_PIN 14
+#define PCD8544_CONTRAST 60 // the default contrast
 #endif

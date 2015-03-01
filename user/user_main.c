@@ -174,7 +174,7 @@ lcdInitTask(os_event_t *events) {
 
 void ICACHE_FLASH_ATTR
 user_init(void) {
-  pcd8544_settings.lcdVop = 0xB1;
+  pcd8544_settings.lcdVop = PCD8544_CONTRAST;
   pcd8544_settings.tempCoeff = 0x04;
   pcd8544_settings.biasMode = 0x14;
   pcd8544_settings.inverse = false;
