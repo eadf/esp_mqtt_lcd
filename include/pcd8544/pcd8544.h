@@ -13,7 +13,7 @@
 #include "c_types.h"
 
 // the number of chars per line
-#define PCD8544_LCD_CHARS_PER_LINE 13
+#define PCD8544_LCD_CHARS_PER_LINE 12
 
 typedef struct {
   uint8_t lcdVop;
