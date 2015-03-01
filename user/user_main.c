@@ -104,7 +104,7 @@ mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *da
   os_memcpy(dataBuf, data, data_len);
   dataBuf[data_len] = 0;
 
-  INFO("Received topic: %s, data: %s \n", topicBuf, dataBuf);
+  INFO("Received topic: %s, data: %s [%d]\n", topicBuf, dataBuf, data_len);
   if (strncmp(sp, clientid, strlen(clientid)) == 0) {
     sp += strlen(clientid);
   }
@@ -112,21 +112,27 @@ mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *da
   if (strcmp(sp, "/lcd0") == 0) {
     PCD8544_gotoXY(0,0);
     PCD8544_lcdPrint(dataBuf);
+    PCD8544_lcdPad(PCD8544_LCD_CHARS_PER_LINE-data_len);
   } else if (strcmp(sp, "/lcd1") == 0) {
     PCD8544_gotoXY(0,1);
     PCD8544_lcdPrint(dataBuf);
+    PCD8544_lcdPad(PCD8544_LCD_CHARS_PER_LINE-data_len);
   } else if (strcmp(sp, "/lcd2") == 0) {
     PCD8544_gotoXY(0,2);
     PCD8544_lcdPrint(dataBuf);
+    PCD8544_lcdPad(PCD8544_LCD_CHARS_PER_LINE-data_len);
   } else if (strcmp(sp, "/lcd3") == 0) {
     PCD8544_gotoXY(0,3);
     PCD8544_lcdPrint(dataBuf);
+    PCD8544_lcdPad(PCD8544_LCD_CHARS_PER_LINE-data_len);
   } else if (strcmp(sp, "/lcd4") == 0) {
     PCD8544_gotoXY(0,4);
     PCD8544_lcdPrint(dataBuf);
+    PCD8544_lcdPad(PCD8544_LCD_CHARS_PER_LINE-data_len);
   } else if (strcmp(sp, "/lcd5") == 0) {
     PCD8544_gotoXY(0,5);
     PCD8544_lcdPrint(dataBuf);
+    PCD8544_lcdPad(PCD8544_LCD_CHARS_PER_LINE-data_len);
   } else if ( (strcmp(topicBuf, "/lcd/contrast") == 0) || (strcmp(sp, "/contrast") == 0)) {
     uint8_t contrast = atoi(dataBuf);
     if (contrast>0){
