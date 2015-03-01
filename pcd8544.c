@@ -299,8 +299,9 @@ PCD8544_drawLine(void) {
  */
 void ICACHE_FLASH_ATTR
 PCD8544_setContrast(uint8_t contrast) {
-  contrast &= 0x7f;
-
+  if (contrast != 0) {
+    contrast = 0x80|(contrast&0x7f);
+  }
   PCD8544_lcdWrite8( LCD_CMD, PCD8544_FUNCTIONSET | PCD8544_EXTENDEDINSTRUCTION );
   PCD8544_lcdWrite8( LCD_CMD, PCD8544_SETVOP | contrast);
   PCD8544_lcdWrite8( LCD_CMD, PCD8544_FUNCTIONSET);
@@ -385,7 +386,7 @@ PCD8544_initLCD(PCD8544_Settings *settings) {
 
   PCD8544_lcdWrite8( LCD_CMD, 0x21 );  // LCD Extended Commands.
   if (settings!=NULL) {
-    PCD8544_lcdWrite8( LCD_CMD, settings->lcdVop );     // Set LCD Vop (Contrast). //B1
+    PCD8544_lcdWrite8( LCD_CMD, 0x80|(settings->lcdVop&0x7F) ); // Set LCD Vop (Contrast). //B1
     PCD8544_lcdWrite8( LCD_CMD, settings->tempCoeff );  // Set Temp coefficent. //0x04
     PCD8544_lcdWrite8( LCD_CMD, settings->biasMode  );  // LCD bias mode 1:48. //0x13
     PCD8544_lcdWrite8( LCD_CMD, settings->inverse?0x0d:0x0C );  // LCD 0x0C in normal mode. 0x0d for inverse
