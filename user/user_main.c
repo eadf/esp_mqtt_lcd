@@ -173,8 +173,13 @@ user_init(void) {
   pcd8544_settings.inverse = false;
 
   // you can change these values to any pin you like and have access to
-  pcd8544_settings.resetPin = 4;
-  pcd8544_settings.scePin = 5;
+  pcd8544_settings.resetPin = 4; //-1; This pin is now optional.
+                                 //   Set it to negative value to disable.
+                                 //   If you do disable it, you must tie LCD reset pin to esp reset via resistor.
+  pcd8544_settings.scePin = 5;   //-1; This pin is now optional.
+                                 //   Set it to negative value to disable.
+                                 //   If you do disable it, you must tie LCD CE pin to GND via resistor.
+                                 //   dcPin, sdinPin and sclkPin can be used for other SPI devices if scePin is *NOT* disabled.
   pcd8544_settings.dcPin = 12;
   pcd8544_settings.sdinPin = 13;
   pcd8544_settings.sclkPin = 14;
