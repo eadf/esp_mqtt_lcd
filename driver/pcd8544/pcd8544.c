@@ -18,14 +18,14 @@
 // These default pin definitions can be changed to any valid GPIO pin.
 // The code in PCD8544_init() should automagically adapt
 
-static uint8_t pinReset=  4;  // LCD RST .... Pin 1
-static uint8_t pinSce  =  5;  // LCD CE  .... Pin 2
-static uint8_t pinDc   = 12;  // LCD DC  .... Pin 3
-static uint8_t pinSdin = 13;  // LCD Din .... Pin 4
-static uint8_t pinSclk = 14;  // LCD Clk .... Pin 5
-                              // LCD Vcc .... Pin 6
-                              // LCD BL  .... Pin 7
-                              // LCD Gnd .... Pin 8
+static int8_t pinReset=  4;  // LCD RST .... Pin 1
+static int8_t pinSce  =  5;  // LCD CE  .... Pin 2
+static int8_t pinDc   = 12;  // LCD DC  .... Pin 3
+static int8_t pinSdin = 13;  // LCD Din .... Pin 4
+static int8_t pinSclk = 14;  // LCD Clk .... Pin 5
+                             // LCD Vcc .... Pin 6
+                             // LCD BL  .... Pin 7
+                             // LCD Gnd .... Pin 8
 
 static bool PCD8544_isInitiated = false;
 
@@ -254,9 +254,13 @@ PCD8544_shiftOut8(bool msbFirst, uint8_t data) {
 void ICACHE_FLASH_ATTR
 PCD8544_lcdWrite8(bool dc, uint8_t data) {
   GPIO_OUTPUT_SET(pinDc, dc);
-  GPIO_OUTPUT_SET(pinSce, LOW);
+  if (pinSce>=0) {
+    GPIO_OUTPUT_SET(pinSce, LOW);
+  }
   PCD8544_shiftOut8(true, data);
-  GPIO_OUTPUT_SET(pinSce, HIGH);
+  if (pinSce>=0) {
+    GPIO_OUTPUT_SET(pinSce, HIGH);
+  }
   os_delay_us(CLOCK_HIGH_TIME);
 }
 
@@ -310,24 +314,44 @@ PCD8544_init(PCD8544_Settings *settings) {
     pinSdin  = settings->sdinPin;
     pinSclk  = settings->sclkPin;
   }
+  uint8_t uniquePins = 3;
+  uint32_t bits = BIT(pinDc)|BIT(pinSdin)|BIT(pinSclk);
+  if (pinReset>=0) {
+    uniquePins += 1;
+    bits |= BIT(pinReset);
+  }
+  if (pinSce>=0) {
+    uniquePins += 1;
+    bits |= BIT(pinSce);
+  }
 
-  if (easygpio_countBits(1<<pinReset|1<<pinSce|1<<pinDc|1<<pinSdin|1<<pinSclk)!=5) {
-    os_printf("PCD8544_init Error: you must specify exactly 5 unique pin numbers\n");
+  if (easygpio_countBits(bits)!=uniquePins) {
+    os_printf("PCD8544_init Error: you must specify exactly %d unique pin numbers\n", uniquePins);
     return;
   }
 
   // Define each used pin as a GPIO output
-  if (!(easygpio_pinMode(pinReset, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
-        easygpio_pinMode(pinSce, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
-        easygpio_pinMode(pinDc, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
+  if(pinReset>=0) {
+    if (!easygpio_pinMode(pinReset, EASYGPIO_NOPULL, EASYGPIO_OUTPUT)) {
+      return;
+    }
+  }
+  if(pinSce>=0) {
+    if (!easygpio_pinMode(pinSce, EASYGPIO_NOPULL, EASYGPIO_OUTPUT)) {
+      return;
+    }
+  }
+  if (!(easygpio_pinMode(pinDc, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
         easygpio_pinMode(pinSdin, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
         easygpio_pinMode(pinSclk, EASYGPIO_NOPULL, EASYGPIO_OUTPUT))) {
     return;
   }
 
   // Set default pin output values
-  GPIO_OUTPUT_SET(pinReset, HIGH);
-  GPIO_OUTPUT_SET(pinSce, HIGH);
+  if (pinReset>=0)
+    GPIO_OUTPUT_SET(pinReset, HIGH);
+  if (pinSce>=0)
+    GPIO_OUTPUT_SET(pinSce, HIGH);
   GPIO_OUTPUT_SET(pinDc, HIGH);
   GPIO_OUTPUT_SET(pinSdin, LOW);
   GPIO_OUTPUT_SET(pinSclk, LOW);
@@ -346,11 +370,13 @@ PCD8544_initLCD(PCD8544_Settings *settings) {
     return;
   }
 
-  os_delay_us(10000);
-  GPIO_OUTPUT_SET(pinReset, LOW);
-  os_delay_us(CLOCK_HIGH_TIME*3);
-  GPIO_OUTPUT_SET(pinReset, HIGH);
-  os_delay_us(10000);
+  if (pinReset>=0){
+    os_delay_us(10000);
+    GPIO_OUTPUT_SET(pinReset, LOW);
+    os_delay_us(CLOCK_HIGH_TIME*3);
+    GPIO_OUTPUT_SET(pinReset, HIGH);
+    os_delay_us(10000);
+  }
 
   PCD8544_lcdWrite8( LCD_CMD, 0x21 );  // LCD Extended Commands.
   if (settings!=NULL) {
@@ -373,8 +399,14 @@ PCD8544_initLCD(PCD8544_Settings *settings) {
   os_printf("--------------------------------------\n");
   os_printf("-Initiated LCD display with these pins:\n");
   os_printf("--------------------------------------\n");
-  os_printf(" LCD RST Pin 1 <=> GPIO%d\n", pinReset);
-  os_printf(" LCD CE  Pin 2 <=> GPIO%d\n", pinSce);
+  if (pinReset>=0)
+    os_printf(" LCD RST Pin 1 <=> GPIO%d\n", pinReset);
+  else
+    os_printf(" LCD RST Pin 1 <=> NC (esp reset)\n");
+  if (pinSce>=0)
+    os_printf(" LCD CE  Pin 2 <=> GPIO%d\n", pinSce);
+  else
+    os_printf(" LCD CE  Pin 2 <=> NC (pull low)\n");
   os_printf(" LCD DC  Pin 3 <=> GPIO%d\n", pinDc);
   os_printf(" LCD Din Pin 4 <=> GPIO%d\n", pinSdin);
   os_printf(" LCD Clk Pin 5 <=> GPIO%d\n", pinSclk);
