@@ -27,4 +27,16 @@
 
 #define PROTOCOL_NAMEv31	/*MQTT version 3.1 compatible with Mosquitto v0.15*/
 //PROTOCOL_NAMEv311			/*MQTT version 3.11 compatible with https://eclipse.org/paho/clients/testing/*/
+
+// application configurations:
+#define PCD8544_RESET_PIN 4  //-1; This pin is now optional.
+                             //   Set it to negative value to disable.
+                             //   If you do disable it, you must tie LCD reset pin to esp reset via resistor.
+#define PCD8544_SCE_PIN   5  //-1; This pin is now optional.
+                             //   Set it to negative value to disable.
+                             //   If you do disable it, you must tie LCD CE pin to GND via resistor.
+                             //   dcPin, sdinPin and sclkPin can be used for other SPI devices if scePin is *NOT* disabled.
+#define PCD8544_DC_PIN   12
+#define PCD8544_SDIN_PIN 13
+#define PCD8544_SCLK_PIN 14
 #endif

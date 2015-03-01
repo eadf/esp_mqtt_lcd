@@ -38,6 +38,7 @@
 #include "stdout/stdout.h"
 #include "mem.h"
 #include "pcd8544/pcd8544.h"
+#include "user_config.h"
 
 static uint8_t openhardware_logo[] = {
 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xc0,0xe0,0xe0,0xe0,0xc0,0x80,0x80,0x00,0x00,0x00,0x00,0x00,0x80,0xf0,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x80,0x80,0x00,0x00,0x00,0x00,0x00,0x80,0xc0,0xe0,0xe0,0xe0,0xe0,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -173,16 +174,16 @@ user_init(void) {
   pcd8544_settings.inverse = false;
 
   // you can change these values to any pin you like and have access to
-  pcd8544_settings.resetPin = 4; //-1; This pin is now optional.
-                                 //   Set it to negative value to disable.
-                                 //   If you do disable it, you must tie LCD reset pin to esp reset via resistor.
-  pcd8544_settings.scePin = 5;   //-1; This pin is now optional.
-                                 //   Set it to negative value to disable.
-                                 //   If you do disable it, you must tie LCD CE pin to GND via resistor.
-                                 //   dcPin, sdinPin and sclkPin can be used for other SPI devices if scePin is *NOT* disabled.
-  pcd8544_settings.dcPin = 12;
-  pcd8544_settings.sdinPin = 13;
-  pcd8544_settings.sclkPin = 14;
+  pcd8544_settings.resetPin = PCD8544_RESET_PIN; //-1; This pin is now optional.
+                                                 //   Set it to negative value to disable.
+                                                 //   If you do disable it, you must tie LCD reset pin to esp reset via resistor.
+  pcd8544_settings.scePin   = PCD8544_SCE_PIN;   //-1; This pin is now optional.
+                                                 //   Set it to negative value to disable.
+                                                 //   If you do disable it, you must tie LCD CE pin to GND via resistor.
+                                                 //   dcPin, sdinPin and sclkPin can be used for other SPI devices if scePin is *NOT* disabled.
+  pcd8544_settings.dcPin    = PCD8544_DC_PIN;
+  pcd8544_settings.sdinPin  = PCD8544_SDIN_PIN;
+  pcd8544_settings.sclkPin  = PCD8544_SCLK_PIN;
 
   // Make uart0 work with just the TX pin. Baud:115200,n,8,1
   // The RX pin is now free for GPIO use.
