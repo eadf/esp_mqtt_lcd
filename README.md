@@ -6,7 +6,7 @@ I'm pulling in several git subtree modules :
 * [tuanpmt's exellent mqtt project: esp_mqtt](https://github.com/tuanpmt/esp_mqtt) 
 * [esp8266_pcd8544](https://github.com/eadf/esp8266_pcd8544) the lcd driver
 * [esp8266_easygpio](https://github.com/eadf/esp8266_easygpio) makes it easy to change GPIO pins
-* [esp8266_stdout](https://github.com/eadf/esp8266_stdout) alternative UART implementation (not really required) 
+* [esp8266_stdout](https://github.com/eadf/esp8266_stdout) alternative UART implementation (required if you want to connect the lcd with only 3 pins) 
 
 Good news, the interface no longer requires 5 available GPIO outputs so an ESP-01 will indeed work. (But only if the RX pin of the esp is used.)
 
