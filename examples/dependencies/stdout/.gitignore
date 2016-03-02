@@ -1,11 +1,3 @@
-# eclipse project files
-.cproject
-.project
-.settings
-
-# esp build files
-*.bin
-
 # Object files
 *.o
 *.ko
