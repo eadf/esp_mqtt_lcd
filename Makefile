@@ -97,8 +97,8 @@ endif
 
 
 # which modules (subdirectories) of the project to include in compiling
-MODULES        = localinclude driver/stdout driver/pcd8544 driver/easygpio mqtt/mqtt mqtt/modules user
-EXTRA_INCDIR    = include $(SDK_BASE)/../include
+MODULES        = localinclude include driver/stdout driver/pcd8544 driver/easygpio mqtt mqtt/mqtt mqtt/modules user
+EXTRA_INCDIR    = $(SDK_BASE)/../include
 
 # libraries used in this project, mainly provided by the SDK
 LIBS		= c gcc hal phy pp net80211 lwip wpa main ssl
