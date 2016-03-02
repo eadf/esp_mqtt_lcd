@@ -34,6 +34,32 @@
 #include "osapi.h"
 #include "ets_sys.h"
 
+#define EASYGPIO_USE_GPIO_INPUT_GET
+
+static void ICACHE_FLASH_ATTR
+gpio16_output_conf(void) {
+  WRITE_PERI_REG(PAD_XPD_DCDC_CONF,
+      (READ_PERI_REG(PAD_XPD_DCDC_CONF) & 0xffffffbcUL) | 0x1UL); // mux configuration for XPD_DCDC to output rtc_gpio0
+
+  WRITE_PERI_REG(RTC_GPIO_CONF,
+      (READ_PERI_REG(RTC_GPIO_CONF) & 0xfffffffeUL) | 0x0UL); //mux configuration for out enable
+
+  WRITE_PERI_REG(RTC_GPIO_ENABLE,
+      (READ_PERI_REG(RTC_GPIO_ENABLE) & 0xfffffffeUL) | 0x1UL); //out enable
+}
+
+static void ICACHE_FLASH_ATTR
+gpio16_input_conf(void) {
+  WRITE_PERI_REG(PAD_XPD_DCDC_CONF,
+      (READ_PERI_REG(PAD_XPD_DCDC_CONF) & 0xffffffbcUL) | 0x1UL); // mux configuration for XPD_DCDC and rtc_gpio0 connection
+
+  WRITE_PERI_REG(RTC_GPIO_CONF,
+      (READ_PERI_REG(RTC_GPIO_CONF) & 0xfffffffeUL) | 0x0UL); //mux configuration for out enable
+
+  WRITE_PERI_REG(RTC_GPIO_ENABLE,
+      READ_PERI_REG(RTC_GPIO_ENABLE) & 0xfffffffeUL);  //out disable
+}
+
 /**
  * Returns the number of active pins in the gpioMask.
  */
@@ -43,7 +69,7 @@ easygpio_countBits(uint32_t gpioMask) {
   uint8_t i=0;
   uint8_t numberOfPins=0;
   for (i=0; i<32; i++){
-    numberOfPins += (gpioMask & 1<<i)?1:0;
+    numberOfPins += (gpioMask & BIT(i))?1:0;
   }
   return numberOfPins;
 }
@@ -52,14 +78,14 @@ easygpio_countBits(uint32_t gpioMask) {
  * Returns the gpio name and func for a specific pin.
  */
 bool ICACHE_FLASH_ATTR
-easygpio_getGPIONameFunc(uint8_t gpio_pin, uint32_t *gpio_name, uint8_t *gpio_func ) {
+easygpio_getGPIONameFunc(uint8_t gpio_pin, uint32_t *gpio_name, uint8_t *gpio_func) {
 
   if (gpio_pin == 6 || gpio_pin == 7 || gpio_pin == 8 || gpio_pin == 11 || gpio_pin >= 17) {
     os_printf("easygpio_getGPIONameFunc Error: There is no GPIO%d, check your code\n", gpio_pin);
     return false;
   }
   if (gpio_pin == 16) {
-    os_printf("easygpio_getGPIONameFunc Error: GPIO16 is not implemented\n");
+    os_printf("easygpio_getGPIONameFunc Error: GPIO16 does not have gpio_name and gpio_func\n");
     return false;
   }
   switch ( gpio_pin ) {
@@ -118,27 +144,20 @@ easygpio_getGPIONameFunc(uint8_t gpio_pin, uint32_t *gpio_name, uint8_t *gpio_fu
 }
 
 /**
- * Sets the pull up and pull down registers for a pin.
- * 'pullUp' takes precedence over pullDown
+ * Sets the pull up registers for a pin.
  */
 static void ICACHE_FLASH_ATTR
 easygpio_setupPullsByName(uint32_t gpio_name, EasyGPIO_PullStatus pullStatus) {
 
-  if (EASYGPIO_PULLUP == pullStatus){
-    PIN_PULLDWN_DIS(gpio_name);
+  if (EASYGPIO_PULLUP == pullStatus) {
     PIN_PULLUP_EN(gpio_name);
-  } else if (EASYGPIO_PULLDOWN == pullStatus){
-    PIN_PULLUP_DIS(gpio_name);
-    PIN_PULLDWN_EN(gpio_name);
   } else {
-    PIN_PULLDWN_DIS(gpio_name);
     PIN_PULLUP_DIS(gpio_name);
   }
 }
 
 /**
- * Sets the pull up and pull down registers for a pin.
- * 'pullUp' takes precedence over pullDown
+ * Sets the pull registers for a pin.
  */
 bool ICACHE_FLASH_ATTR
 easygpio_pullMode(uint8_t gpio_pin, EasyGPIO_PullStatus pullStatus) {
@@ -154,15 +173,23 @@ easygpio_pullMode(uint8_t gpio_pin, EasyGPIO_PullStatus pullStatus) {
 }
 
 /**
- * Sets the 'gpio_pin' pin as an input GPIO and sets the pull up and
- * pull down registers for that pin.
+ * Sets the 'gpio_pin' pin as a GPIO and sets the pull register for that pin.
+ * 'pullStatus' has no effect on output pins or GPIO16
  */
 bool ICACHE_FLASH_ATTR
 easygpio_pinMode(uint8_t gpio_pin, EasyGPIO_PullStatus pullStatus, EasyGPIO_PinMode pinMode) {
   uint32_t gpio_name;
   uint8_t gpio_func;
 
-  if (!easygpio_getGPIONameFunc(gpio_pin, &gpio_name, &gpio_func) ) {
+  if (16==gpio_pin) {
+    // ignoring pull status on GPIO16 for now
+    if (EASYGPIO_OUTPUT == pinMode) {
+      gpio16_output_conf();
+    } else {
+      gpio16_input_conf();
+    }
+    return true;
+  } else if (!easygpio_getGPIONameFunc(gpio_pin, &gpio_name, &gpio_func) ) {
     return false;
   }
 
@@ -170,16 +197,20 @@ easygpio_pinMode(uint8_t gpio_pin, EasyGPIO_PullStatus pullStatus, EasyGPIO_PinM
   easygpio_setupPullsByName(gpio_name, pullStatus);
 
   if (EASYGPIO_OUTPUT != pinMode) {
-    GPIO_DIS_OUTPUT(gpio_pin);
+    GPIO_DIS_OUTPUT(GPIO_ID_PIN(gpio_pin));
+  } else {
+    // must enable the pin or else the WRITE_PERI_REG won't work
+    gpio_output_set(0, 0, BIT(GPIO_ID_PIN(gpio_pin)),0);
   }
   return true;
 }
 
 /**
- * Sets the 'gpio_pin' pin as a GPIO and sets the interrupt to trigger on that pin
+ * Sets the 'gpio_pin' pin as a GPIO and sets the interrupt to trigger on that pin.
+ * The 'interruptArg' is the function argument that will be sent to your interruptHandler
  */
 bool ICACHE_FLASH_ATTR
-easygpio_attachInterrupt(uint8_t gpio_pin, EasyGPIO_PullStatus pullStatus, void (*interruptHandler)(int8_t key)) {
+easygpio_attachInterrupt(uint8_t gpio_pin, EasyGPIO_PullStatus pullStatus, void (*interruptHandler)(void *arg), void *interruptArg) {
   uint32_t gpio_name;
   uint8_t gpio_func;
 
@@ -191,7 +222,7 @@ easygpio_attachInterrupt(uint8_t gpio_pin, EasyGPIO_PullStatus pullStatus, void 
     return false;
   }
 
-  ETS_GPIO_INTR_ATTACH(interruptHandler, NULL);
+  ETS_GPIO_INTR_ATTACH(interruptHandler, interruptArg);
   ETS_GPIO_INTR_DISABLE();
 
   PIN_FUNC_SELECT(gpio_name, gpio_func);
@@ -229,3 +260,84 @@ easygpio_detachInterrupt(uint8_t gpio_pin) {
   return true;
 }
 
+/**
+ * Uniform way of setting GPIO output value. Handles GPIO 0-16.
+ *
+ * You can not rely on that this function will switch the gpio to an output like GPIO_OUTPUT_SET does.
+ * Use easygpio_outputEnable() to change an input gpio to output mode.
+ */
+void
+easygpio_outputSet(uint8_t gpio_pin, uint8_t value) {
+  if (16==gpio_pin) {
+    WRITE_PERI_REG(RTC_GPIO_OUT,
+                   (READ_PERI_REG(RTC_GPIO_OUT) & 0xfffffffeUL) | (0x1UL & value));
+  } else {
+#ifdef EASYGPIO_USE_GPIO_OUTPUT_SET
+    GPIO_OUTPUT_SET(GPIO_ID_PIN(gpio_pin), value);
+#else
+    if (value&1){
+      WRITE_PERI_REG( PERIPHS_GPIO_BASEADDR, READ_PERI_REG(PERIPHS_GPIO_BASEADDR) | BIT(gpio_pin));
+    } else {
+      WRITE_PERI_REG( PERIPHS_GPIO_BASEADDR, READ_PERI_REG(PERIPHS_GPIO_BASEADDR) & ~BIT(gpio_pin));
+    }
+#endif
+  }
+}
+
+/**
+ * Uniform way of getting GPIO input value. Handles GPIO 0-16.
+ * The pin must be initiated with easygpio_pinMode() so that the pin mux is setup as a gpio in the first place.
+ * If you know that you won't be using GPIO16 then you'd better off by just using GPIO_INPUT_GET().
+ */
+uint8_t
+easygpio_inputGet(uint8_t gpio_pin) {
+  if (16==gpio_pin) {
+    return (READ_PERI_REG(RTC_GPIO_IN_DATA) & 1UL);
+  } else {
+#ifdef EASYGPIO_USE_GPIO_INPUT_GET
+    return GPIO_INPUT_GET(GPIO_ID_PIN(gpio_pin));
+#else
+  // this does *not* work, maybe GPIO_IN_ADDRESS is the wrong address
+  return ((GPIO_REG_READ(GPIO_IN_ADDRESS) > gpio_pin)  & 1UL);
+#endif
+  }
+}
+
+/**
+ * Uniform way of turning an output GPIO pin into input mode. Handles GPIO 0-16.
+ * The pin must be initiated with easygpio_pinMode() so that the pin mux is setup as a gpio in the first place.
+ * This function does the same thing as GPIO_DIS_OUTPUT, but works on GPIO16 too.
+ */
+void easygpio_outputDisable(uint8_t gpio_pin) {
+  if (16==gpio_pin) {
+    WRITE_PERI_REG(RTC_GPIO_ENABLE,
+        READ_PERI_REG(RTC_GPIO_ENABLE) & 0xfffffffeUL);  //out disable
+  } else {
+    GPIO_DIS_OUTPUT(GPIO_ID_PIN(gpio_pin));
+  }
+}
+
+/**
+ * Uniform way of turning an input GPIO pin into output mode. Handles GPIO 0-16.
+ * The pin must be initiated with easygpio_pinMode() so that the pin mux is setup as a gpio in the first place.
+ *
+ * This function:
+ *  - should only be used to convert a input pin into an output pin.
+ *  - is a little bit slower than easygpio_outputSet() so you should use that
+ *    function to just change output value.
+ *  - does the same thing as GPIO_OUTPUT_SET, but works on GPIO16 too.
+ */
+void easygpio_outputEnable(uint8_t gpio_pin, uint8_t value) {
+  if (16==gpio_pin) {
+    // write the value before flipping to output
+    // - so we don't flash previous value for a few ns.
+    WRITE_PERI_REG(RTC_GPIO_OUT,
+                           (READ_PERI_REG(RTC_GPIO_OUT) & 0xfffffffeUL) | (0x1UL & value));
+
+    WRITE_PERI_REG(RTC_GPIO_ENABLE,
+          (READ_PERI_REG(RTC_GPIO_ENABLE) & 0xfffffffeUL) | 0x1UL); //out enable
+
+  } else {
+    GPIO_OUTPUT_SET(GPIO_ID_PIN(gpio_pin), value);
+  }
+}
