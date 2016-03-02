@@ -1,5 +1,6 @@
-# you can put your own userconfig.h here and git will not bother you about it
+# you can put your own user_config.h and mqtt_config.h here and git will not bother you about it
 localinclude/user_config.h
+localinclude/mqtt_config.h
 
 .project
 .cproject
