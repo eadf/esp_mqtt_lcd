@@ -1,0 +1,6 @@
+.cproject
+.project
+build/
+firmware/
+.settings/
+.DS_Store
