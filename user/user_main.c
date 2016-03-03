@@ -63,9 +63,12 @@ wifiConnectCb(uint8_t status) {
   // Use the hex encoded system_get_chip_id() value as
   // an unique topic (that still fits on the screen)
   os_sprintf(clientid, "/%0x", system_get_chip_id());
-
-  if (status == STATION_GOT_IP) {
+  
+  if(status == STATION_GOT_IP){
+    os_printf("Connecting to MQTT server %s:%d\n", MQTT_HOST, MQTT_PORT);
     MQTT_Connect(&mqttClient);
+  } else {
+    MQTT_Disconnect(&mqttClient);
   }
 }
 
@@ -89,6 +92,11 @@ mqttConnectedCb(uint32_t *args) {
   MQTT_Subscribe(client, "/lcd/contrast", 0);
   os_sprintf(buf, "%s/contrast", clientid);
   MQTT_Subscribe(client, buf, 0);
+}
+
+void mqttDisconnectedCb(uint32_t *args) {
+  MQTT_Client* client = (MQTT_Client*)args;
+  INFO("MQTT: Disconnected\r\n");
 }
 
 void ICACHE_FLASH_ATTR
@@ -207,6 +215,7 @@ user_init(void) {
 
   MQTT_InitLWT(&mqttClient, "/lwt", "offline", 0, 0);
   MQTT_OnConnected(&mqttClient, mqttConnectedCb);
+  MQTT_OnDisconnected(&mqttClient, mqttDisconnectedCb);
   MQTT_OnData(&mqttClient, mqttDataCb);
 
   WIFI_Connect(sysCfg.sta_ssid, sysCfg.sta_pwd, wifiConnectCb);
