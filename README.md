@@ -73,4 +73,4 @@ make clean && make test
 
 You won't be needing esptool, the makefile only uses esptool.py (provided by esp-open-sdk)
 
-I have tested this with sdk v0.9.5 and v0.9.4 (linux & mac)
+I have tested this with sdk 1.5.2, v0.9.5 and v0.9.4 (linux & mac)
